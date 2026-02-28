@@ -1,0 +1,46 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+xcuserdata/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods (if used in future)
+Pods/
+
+# Firebase
+GoogleService-Info.plist
+
+# Secrets & credentials
+*.pem
+*.p12
+*.key
+*.mobileprovision
+
+# OS files
+.DS_Store
+*.swp
+*~
+._*
+
+# Plan file (development only)
+PLAN.md
+
+# IDE
+*.idea/
+*.vscode/
+
+# Archives
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace

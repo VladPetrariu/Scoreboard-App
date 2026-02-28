@@ -1,21 +1,26 @@
-//
-//  WhatsTheScore_App.swift
-//  WhatsTheScore?
-//
-//  Created by Vlad Petrariu on 2026-02-28.
-//
-
 import SwiftUI
-import CoreData
+import FirebaseCore
 
 @main
 struct WhatsTheScore_App: App {
-    let persistenceController = PersistenceController.shared
+    @StateObject private var authViewModel = AuthViewModel()
+
+    init() {
+        FirebaseApp.configure()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            Group {
+                if authViewModel.isLoading {
+                    ProgressView("Loading...")
+                } else if authViewModel.isSignedIn {
+                    HomeView()
+                } else {
+                    LoginView()
+                }
+            }
+            .environmentObject(authViewModel)
         }
     }
 }
