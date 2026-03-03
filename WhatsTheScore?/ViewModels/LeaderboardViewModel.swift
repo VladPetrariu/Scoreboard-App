@@ -61,6 +61,26 @@ class LeaderboardViewModel: ObservableObject {
         }
     }
 
+    func deleteMatch(_ match: Match) async -> Bool {
+        do {
+            // Adjust stats for each player: decrement gamesPlayed, decrement wins if they won
+            for player in match.players {
+                try await leaderboardService.adjustMemberStats(
+                    leaderboardId: leaderboard.id,
+                    userId: player.userId,
+                    gamesDelta: -1,
+                    winsDelta: player.placement == 1 ? -1 : 0
+                )
+            }
+            // Delete the match document
+            try await matchService.deleteMatch(leaderboardId: leaderboard.id, matchId: match.id)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
     func leaveLeaderboard(userId: String) async -> Bool {
         do {
             try await leaderboardService.leaveLeaderboard(leaderboardId: leaderboard.id, userId: userId)

@@ -44,6 +44,13 @@ class MatchService {
         return match
     }
 
+    // MARK: - Delete Match
+
+    func deleteMatch(leaderboardId: String, matchId: String) async throws {
+        try await db.collection("leaderboards").document(leaderboardId)
+            .collection("matches").document(matchId).delete()
+    }
+
     // MARK: - Fetch History
 
     func fetchMatchHistory(leaderboardId: String, limit: Int = 50) async throws -> [Match] {

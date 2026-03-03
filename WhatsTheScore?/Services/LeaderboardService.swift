@@ -29,7 +29,8 @@ class LeaderboardService {
             gameTypes: gameTypes,
             startingPoints: startingPoints,
             members: [member],
-            memberIds: [creatorId]
+            memberIds: [creatorId],
+            savedPointSystems: []
         )
 
         try docRef.setData(from: leaderboard)
@@ -143,6 +144,62 @@ class LeaderboardService {
         try await docRef.updateData([
             "gameTypes": FieldValue.arrayUnion([gameType])
         ])
+    }
+
+    // MARK: - Remove Game Type
+
+    func removeGameType(leaderboardId: String, gameType: String) async throws {
+        let docRef = db.collection("leaderboards").document(leaderboardId)
+        try await docRef.updateData([
+            "gameTypes": FieldValue.arrayRemove([gameType])
+        ])
+    }
+
+    // MARK: - Save Custom Point System
+
+    func savePointSystem(leaderboardId: String, pointSystem: SavedPointSystem) async throws {
+        let docRef = db.collection("leaderboards").document(leaderboardId)
+        let data = try Firestore.Encoder().encode(pointSystem)
+        try await docRef.updateData([
+            "savedPointSystems": FieldValue.arrayUnion([data])
+        ])
+    }
+
+    // MARK: - Reset Member Stats
+
+    func resetMemberStats(userId: String, leaderboardIds: [String]) async throws {
+        for leaderboardId in leaderboardIds {
+            let docRef = db.collection("leaderboards").document(leaderboardId)
+            let doc = try await docRef.getDocument()
+            guard var leaderboard = try doc.data(as: Leaderboard?.self) else { continue }
+
+            guard let memberIndex = leaderboard.members.firstIndex(where: { $0.userId == userId }) else { continue }
+
+            leaderboard.members[memberIndex].gamesPlayed = 0
+            leaderboard.members[memberIndex].wins = 0
+            leaderboard.members[memberIndex].points = leaderboard.startingPoints
+
+            try docRef.setData(from: leaderboard)
+        }
+    }
+
+    // MARK: - Adjust Member Stats
+
+    func adjustMemberStats(leaderboardId: String, userId: String, gamesDelta: Int, winsDelta: Int) async throws {
+        let docRef = db.collection("leaderboards").document(leaderboardId)
+        let doc = try await docRef.getDocument()
+        guard var leaderboard = try doc.data(as: Leaderboard?.self) else {
+            throw LeaderboardError.notFound
+        }
+
+        guard let memberIndex = leaderboard.members.firstIndex(where: { $0.userId == userId }) else {
+            throw LeaderboardError.memberNotFound
+        }
+
+        leaderboard.members[memberIndex].gamesPlayed = max(0, leaderboard.members[memberIndex].gamesPlayed + gamesDelta)
+        leaderboard.members[memberIndex].wins = max(0, leaderboard.members[memberIndex].wins + winsDelta)
+
+        try docRef.setData(from: leaderboard)
     }
 
     // MARK: - Listener

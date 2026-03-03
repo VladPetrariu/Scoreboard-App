@@ -6,31 +6,30 @@ struct CreateMatchView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var step = 1
 
+    private let stepTitles = ["Game", "Players", "Points", "Order"]
+
     init(leaderboard: Leaderboard) {
         _viewModel = StateObject(wrappedValue: CreateMatchViewModel(leaderboard: leaderboard))
     }
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 // Step indicator
-                HStack(spacing: 8) {
-                    ForEach(1...3, id: \.self) { s in
-                        Capsule()
-                            .fill(s <= step ? Color.blue : Color(.systemGray4))
-                            .frame(height: 4)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
+                stepIndicator
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
 
                 switch step {
                 case 1: gameSelectionStep
                 case 2: playerSelectionStep
-                case 3: resultStep
+                case 3: pointSystemStep
+                case 4: placementStep
                 default: EmptyView()
                 }
             }
+            .themedBackground()
             .navigationTitle("New Game")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -41,12 +40,52 @@ struct CreateMatchView: View {
         }
     }
 
+    // MARK: - Step Indicator
+
+    private var stepIndicator: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(1...4), id: \.self) { s in
+                // Circle
+                VStack(spacing: 4) {
+                    ZStack {
+                        Circle()
+                            .fill(s <= step ? AnyShapeStyle(AppColors.actionGradient) : AnyShapeStyle(AppColors.navy.opacity(0.08)))
+                            .frame(width: 28, height: 28)
+
+                        if s < step {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(.white)
+                        } else {
+                            Text("\(s)")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(s == step ? .white : AppColors.navy.opacity(0.4))
+                        }
+                    }
+
+                    Text(stepTitles[s - 1])
+                        .font(.caption2)
+                        .fontWeight(s == step ? .semibold : .regular)
+                        .foregroundStyle(s <= step ? .primary : .secondary)
+                }
+
+                // Connecting line
+                if s < 4 {
+                    Rectangle()
+                        .fill(s < step ? AnyShapeStyle(AppColors.actionGradient) : AnyShapeStyle(AppColors.navy.opacity(0.08)))
+                        .frame(height: 2)
+                        .padding(.bottom, 18) // align with circle center
+                }
+            }
+        }
+    }
+
     // MARK: - Step 1: Game Selection
 
     private var gameSelectionStep: some View {
-        List {
-            Section("Select a Game") {
-                ForEach(viewModel.leaderboard.gameTypes, id: \.self) { game in
+        VStack {
+            List {
+                ForEach(viewModel.gameList, id: \.self) { game in
                     Button {
                         viewModel.selectedGameType = game
                         withAnimation { step = 2 }
@@ -56,22 +95,33 @@ struct CreateMatchView: View {
                                 .foregroundStyle(.primary)
                             Spacer()
                             if viewModel.selectedGameType == game {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.blue)
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(AppColors.primary)
                             }
                             Image(systemName: "chevron.right")
-                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
                         }
                     }
                 }
-            }
+                .onDelete { offsets in
+                    viewModel.deleteGame(at: offsets)
+                }
 
-            if viewModel.leaderboard.gameTypes.isEmpty {
                 Section {
-                    Text("No game types configured for this leaderboard.")
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        TextField("Add custom game...", text: $viewModel.customGameName)
+                        Button("Add") {
+                            viewModel.addCustomGame()
+                        }
+                        .disabled(viewModel.customGameName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                } header: {
+                    Text("Custom Game")
+                        .sectionHeaderStyle()
                 }
             }
+            .scrollContentBackground(.hidden)
         }
     }
 
@@ -79,59 +129,181 @@ struct CreateMatchView: View {
 
     private var playerSelectionStep: some View {
         VStack {
-            List {
-                Section("Select 2-4 Players") {
+            ScrollView {
+                VStack(spacing: 10) {
                     ForEach(viewModel.leaderboard.members) { member in
                         Button {
                             togglePlayer(member)
                         } label: {
+                            let isSelected = viewModel.selectedPlayers.contains(where: { $0.userId == member.userId })
                             HStack {
                                 Text(member.displayName)
+                                    .font(.body)
                                     .foregroundStyle(.primary)
                                 Spacer()
-                                if viewModel.selectedPlayers.contains(where: { $0.userId == member.userId }) {
+                                if isSelected {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(AppColors.primary)
+                                        .font(.title3)
                                 } else {
                                     Image(systemName: "circle")
                                         .foregroundStyle(.secondary)
+                                        .font(.title3)
                                 }
                             }
+                            .padding(16)
+                            .background(
+                                ZStack {
+                                    Color(.systemBackground)
+                                    AppColors.navy.opacity(0.03)
+                                }
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(isSelected ? AppColors.primary : AppColors.subtleBorder, lineWidth: isSelected ? 1.5 : 1)
+                            )
+                            .cornerRadius(16)
+                            .shadow(color: AppColors.navy.opacity(0.06), radius: 6, x: 0, y: 2)
                         }
+                        .buttonStyle(.plain)
                     }
-                }
 
-                Section {
                     Text("\(viewModel.selectedPlayers.count) of 2-4 players selected")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
+                        .padding(.top, 4)
                 }
+                .padding(.horizontal)
+                .padding(.top, 8)
             }
 
-            HStack {
-                Button("Back") {
-                    withAnimation { step = 1 }
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Button("Next") {
+            navigationButtons(
+                backAction: { withAnimation { step = 1 } },
+                nextAction: {
                     viewModel.initializePlacements()
                     withAnimation { step = 3 }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.selectedPlayers.count < 2 || viewModel.selectedPlayers.count > 4)
-            }
-            .padding()
+                },
+                nextDisabled: viewModel.selectedPlayers.count < 2 || viewModel.selectedPlayers.count > 4
+            )
         }
     }
 
-    // MARK: - Step 3: Record Result
+    // MARK: - Step 3: Point System
 
-    private var resultStep: some View {
+    private var pointSystemStep: some View {
         VStack {
             List {
-                Section("Drag to Set Placements (top = 1st)") {
+                Section {
+                    ForEach(viewModel.availablePointSystems) { preset in
+                        let isSelected = !viewModel.useCustomPoints && viewModel.selectedPointSystem == preset
+                        Button {
+                            viewModel.useCustomPoints = false
+                            viewModel.selectedPointSystem = preset
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(preset.name)
+                                        .foregroundStyle(.primary)
+                                    Text(preset.pointsByPlacement.map { "\($0 >= 0 ? "+" : "")\($0)" }.joined(separator: ", "))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                if isSelected {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(AppColors.primary)
+                                        .font(.title3)
+                                } else {
+                                    Image(systemName: "circle")
+                                        .foregroundStyle(.secondary)
+                                        .font(.title3)
+                                }
+                            }
+                        }
+                        .listRowBackground(isSelected ? AppColors.primary.opacity(0.1) : nil)
+                    }
+
+                    Button {
+                        viewModel.useCustomPoints = true
+                        viewModel.selectedPointSystem = nil
+                        viewModel.customPoints = Array(repeating: 0, count: viewModel.selectedPlayers.count)
+                        viewModel.didSavePointSystem = false
+                        viewModel.customPointSystemName = ""
+                    } label: {
+                        HStack {
+                            Text("Custom")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            if viewModel.useCustomPoints {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(AppColors.primary)
+                                    .font(.title3)
+                            } else {
+                                Image(systemName: "circle")
+                                    .foregroundStyle(.secondary)
+                                    .font(.title3)
+                            }
+                        }
+                    }
+                    .listRowBackground(viewModel.useCustomPoints ? AppColors.primary.opacity(0.1) : nil)
+                } header: {
+                    Text("Point System")
+                        .sectionHeaderStyle()
+                }
+
+                if viewModel.useCustomPoints {
+                    Section {
+                        ForEach(0..<viewModel.selectedPlayers.count, id: \.self) { index in
+                            HStack {
+                                Text(placementLabel(index + 1))
+                                    .frame(width: 36)
+                                TextField("Points", value: $viewModel.customPoints[index], format: .number)
+                                    .keyboardType(.numbersAndPunctuation)
+                                    .textFieldStyle(.roundedBorder)
+                            }
+                        }
+                    } header: {
+                        Text("Custom Points")
+                            .sectionHeaderStyle()
+                    }
+
+                    Section {
+                        HStack {
+                            TextField("Point system name...", text: $viewModel.customPointSystemName)
+                            Button {
+                                viewModel.saveCustomPointSystem()
+                            } label: {
+                                Text(viewModel.didSavePointSystem ? "Saved" : "Save")
+                            }
+                            .disabled(!viewModel.canSaveCustomPointSystem)
+                        }
+                        if viewModel.didSavePointSystem {
+                            Label("This point system will appear as an option for future games.", systemImage: "checkmark.circle")
+                                .font(.caption)
+                                .foregroundStyle(AppColors.accent)
+                        }
+                    } header: {
+                        Text("Save to Leaderboard")
+                            .sectionHeaderStyle()
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+
+            navigationButtons(
+                backAction: { withAnimation { step = 2 } },
+                nextAction: { withAnimation { step = 4 } },
+                nextDisabled: !viewModel.hasPointSystem
+            )
+        }
+    }
+
+    // MARK: - Step 4: Placement Order & Submit
+
+    private var placementStep: some View {
+        VStack {
+            List {
+                Section {
                     ForEach(viewModel.placements) { member in
                         HStack {
                             if let index = viewModel.placements.firstIndex(where: { $0.userId == member.userId }) {
@@ -148,82 +320,46 @@ struct CreateMatchView: View {
                     .onMove { from, to in
                         viewModel.placements.move(fromOffsets: from, toOffset: to)
                     }
-                }
-
-                Section("Point System") {
-                    ForEach(viewModel.availablePointSystems) { preset in
-                        Button {
-                            viewModel.useCustomPoints = false
-                            viewModel.selectedPointSystem = preset
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(preset.name)
-                                        .foregroundStyle(.primary)
-                                    Text(preset.pointsByPlacement.map { "\($0 >= 0 ? "+" : "")\($0)" }.joined(separator: ", "))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                if !viewModel.useCustomPoints && viewModel.selectedPointSystem == preset {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(.blue)
-                                }
-                            }
-                        }
-                    }
-
-                    Button {
-                        viewModel.useCustomPoints = true
-                        viewModel.selectedPointSystem = nil
-                        viewModel.customPoints = Array(repeating: 0, count: viewModel.selectedPlayers.count)
-                    } label: {
-                        HStack {
-                            Text("Custom")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if viewModel.useCustomPoints {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                    }
-
-                    if viewModel.useCustomPoints {
-                        ForEach(0..<viewModel.selectedPlayers.count, id: \.self) { index in
-                            HStack {
-                                Text(placementLabel(index + 1))
-                                    .frame(width: 36)
-                                TextField("Points", value: $viewModel.customPoints[index], format: .number)
-                                    .keyboardType(.numbersAndPunctuation)
-                                    .textFieldStyle(.roundedBorder)
-                            }
-                        }
-                    }
+                } header: {
+                    Text("Drag to Set Placements (top = 1st)")
+                        .sectionHeaderStyle()
                 }
 
                 // Preview
                 if !viewModel.pointsPreview.isEmpty {
-                    Section("Points Preview") {
+                    Section {
                         ForEach(viewModel.pointsPreview, id: \.member.userId) { item in
                             HStack {
                                 Text(item.member.displayName)
                                 Spacer()
                                 Text(item.points >= 0 ? "+\(item.points)" : "\(item.points)")
                                     .fontWeight(.semibold)
-                                    .foregroundStyle(item.points >= 0 ? .green : .red)
+                                    .foregroundStyle(item.points >= 0 ? AppColors.positive : AppColors.negative)
                             }
                         }
+                    } header: {
+                        Text("Points Preview")
+                            .sectionHeaderStyle()
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .environment(\.editMode, .constant(.active))
 
             HStack {
-                Button("Back") {
-                    withAnimation { step = 2 }
+                Button {
+                    withAnimation { step = 3 }
+                } label: {
+                    Text("Back")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppColors.navy)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppColors.navy.opacity(0.3), lineWidth: 1.5)
+                        )
                 }
-                .buttonStyle(.bordered)
 
                 Spacer()
 
@@ -232,15 +368,47 @@ struct CreateMatchView: View {
                 } label: {
                     if viewModel.isSubmitting {
                         ProgressView()
+                            .tint(.white)
                     } else {
                         Text("Submit Result")
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(GradientButtonStyle(fullWidth: false))
                 .disabled(!viewModel.canSubmit || viewModel.isSubmitting)
             }
             .padding()
         }
+    }
+
+    // MARK: - Reusable Nav Buttons
+
+    private func navigationButtons(backAction: @escaping () -> Void, nextAction: @escaping () -> Void, nextDisabled: Bool) -> some View {
+        HStack {
+            Button {
+                backAction()
+            } label: {
+                Text("Back")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColors.navy)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppColors.navy.opacity(0.3), lineWidth: 1.5)
+                    )
+            }
+
+            Spacer()
+
+            Button {
+                nextAction()
+            } label: {
+                Text("Next")
+            }
+            .buttonStyle(GradientButtonStyle(fullWidth: false))
+            .disabled(nextDisabled)
+        }
+        .padding()
     }
 
     // MARK: - Helpers
@@ -273,11 +441,6 @@ struct CreateMatchView: View {
     }
 
     private func placementColor(_ position: Int) -> Color {
-        switch position {
-        case 1: return .yellow
-        case 2: return .gray
-        case 3: return .brown
-        default: return .secondary
-        }
+        RankTheme.positionColor(position)
     }
 }

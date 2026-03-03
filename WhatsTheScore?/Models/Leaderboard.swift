@@ -14,6 +14,13 @@ struct LeaderboardMember: Codable, Identifiable, Equatable {
     }
 }
 
+struct SavedPointSystem: Codable, Equatable, Identifiable {
+    var id: String { name }
+    var name: String
+    var playerCount: Int
+    var pointsByPlacement: [Int]
+}
+
 struct Leaderboard: Identifiable, Equatable {
     var id: String // Firestore document ID
     var name: String
@@ -24,19 +31,20 @@ struct Leaderboard: Identifiable, Equatable {
     var startingPoints: Int // starting rank for new members
     var members: [LeaderboardMember]
     var memberIds: [String]
+    var savedPointSystems: [SavedPointSystem]
 
     var sortedMembers: [LeaderboardMember] {
         members.sorted { $0.points > $1.points }
     }
 
     static let presetGameTypes = [
-        "Pool", "Darts", "Chess", "FIFA", "Monopoly"
+        "Pool", "Darts", "Monopoly", "Chess", "FIFA"
     ]
 }
 
 extension Leaderboard: Codable {
     enum CodingKeys: String, CodingKey {
-        case id, name, creatorId, inviteCode, createdAt, gameTypes, startingPoints, members, memberIds
+        case id, name, creatorId, inviteCode, createdAt, gameTypes, startingPoints, members, memberIds, savedPointSystems
     }
 
     init(from decoder: Decoder) throws {
@@ -52,5 +60,6 @@ extension Leaderboard: Codable {
         // Backwards compat: default to empty if missing, then derive from members
         let decoded = try container.decodeIfPresent([String].self, forKey: .memberIds) ?? []
         memberIds = decoded.isEmpty ? members.map { $0.userId } : decoded
+        savedPointSystems = try container.decodeIfPresent([SavedPointSystem].self, forKey: .savedPointSystems) ?? []
     }
 }

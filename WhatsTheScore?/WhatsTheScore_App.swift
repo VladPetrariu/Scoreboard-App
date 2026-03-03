@@ -21,12 +21,13 @@ struct WhatsTheScore_App: App {
                 if authViewModel.isLoading {
                     ProgressView("Loading...")
                 } else if authViewModel.isSignedIn {
-                    HomeView()
+                    MainTabView()
                 } else {
                     LoginView()
                 }
             }
             .environmentObject(authViewModel)
+            .tint(AppColors.accent)
         }
     }
 }

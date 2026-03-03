@@ -5,9 +5,9 @@ enum RankBadgeSize {
 
     var iconSize: CGFloat {
         switch self {
-        case .small: return 16
-        case .medium: return 24
-        case .large: return 40
+        case .small: return 12
+        case .medium: return 16
+        case .large: return 28
         }
     }
 
@@ -33,30 +33,36 @@ struct RankBadgeView: View {
     var size: RankBadgeSize = .medium
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: size == .large ? 6 : 4) {
             Image(systemName: rank.tier.systemIcon)
-                .font(.system(size: size.iconSize))
-            Text(rank.displayName)
-                .font(size.fontSize)
-                .fontWeight(.semibold)
+                .font(.system(size: size.iconSize, weight: .semibold))
+
+            switch size {
+            case .small:
+                Text(rank.tier.rawValue)
+                    .font(size.fontSize)
+                    .fontWeight(.semibold)
+            case .medium:
+                Text(rank.displayName)
+                    .font(size.fontSize)
+                    .fontWeight(.semibold)
+            case .large:
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(rank.tier.rawValue)
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                    Text("Division \(rank.division)")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .opacity(0.85)
+                }
+            }
         }
-        .foregroundStyle(rankColor)
+        .foregroundStyle(.white)
         .padding(.horizontal, size.padding)
         .padding(.vertical, size.padding / 2)
-        .background(rankColor.opacity(0.12))
-        .cornerRadius(8)
-    }
-
-    private var rankColor: Color {
-        switch rank.tier {
-        case .iron: return .gray
-        case .bronze: return .brown
-        case .silver: return Color(.systemGray)
-        case .gold: return .yellow
-        case .platinum: return .cyan
-        case .diamond: return .blue
-        case .ascendant: return .green
-        case .immortal: return .red
-        }
+        .background(RankTheme.gradient(for: rank.tier))
+        .cornerRadius(size == .large ? 12 : 8)
+        .shadow(color: RankTheme.color(for: rank.tier).opacity(0.35), radius: 4, x: 0, y: 2)
     }
 }

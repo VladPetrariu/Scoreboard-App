@@ -6,10 +6,9 @@ struct CreateLeaderboardView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name = ""
-    @State private var selectedPresetGames: Set<String> = []
     @State private var customGameName = ""
     @State private var customGames: [String] = []
-    @State private var startingTier: RankTier = .iron
+    @State private var startingTier: RankTier = .gold
     @State private var startingDivision: Int = 1
     @State private var createdLeaderboard: Leaderboard?
     @State private var isCreating = false
@@ -26,26 +25,20 @@ struct CreateLeaderboardView: View {
 
     private var formView: some View {
         Form {
-            Section("Leaderboard Name") {
+            Section {
                 TextField("e.g. Game Night Squad", text: $name)
+            } header: {
+                Text("Leaderboard Name")
+                    .sectionHeaderStyle()
             }
 
-            Section("Game Types") {
+            Section {
                 ForEach(Leaderboard.presetGameTypes, id: \.self) { game in
-                    Button {
-                        toggleGame(game)
-                    } label: {
-                        HStack {
-                            Text(game)
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if selectedPresetGames.contains(game) {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                    }
+                    Text(game)
                 }
+            } header: {
+                Text("Game Types")
+                    .sectionHeaderStyle()
             }
 
             Section {
@@ -67,11 +60,12 @@ struct CreateLeaderboardView: View {
                 }
             } header: {
                 Text("Starting Rank")
+                    .sectionHeaderStyle()
             } footer: {
                 Text("All players who join this leaderboard will start at this rank.")
             }
 
-            Section("Custom Games") {
+            Section {
                 ForEach(customGames, id: \.self) { game in
                     HStack {
                         Text(game)
@@ -92,8 +86,13 @@ struct CreateLeaderboardView: View {
                     }
                     .disabled(customGameName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+            } header: {
+                Text("Custom Games")
+                    .sectionHeaderStyle()
             }
         }
+        .scrollContentBackground(.hidden)
+        .themedBackground()
         .navigationTitle("Create Leaderboard")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -113,9 +112,17 @@ struct CreateLeaderboardView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.green)
+            // Gradient circle checkmark
+            ZStack {
+                Circle()
+                    .fill(AppColors.actionGradient)
+                    .frame(width: 80, height: 80)
+                    .shadow(color: AppColors.primary.opacity(0.3), radius: 12, x: 0, y: 4)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundStyle(.white)
+            }
 
             Text("Leaderboard Created!")
                 .font(.title2)
@@ -126,8 +133,18 @@ struct CreateLeaderboardView: View {
 
             Text(leaderboard.inviteCode)
                 .font(.system(size: 36, weight: .bold, design: .monospaced))
+                .foregroundStyle(AppColors.navy)
                 .padding()
-                .background(Color(.secondarySystemBackground))
+                .background(
+                    ZStack {
+                        Color(.secondarySystemBackground)
+                        AppColors.navy.opacity(0.03)
+                    }
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(AppColors.subtleBorder, lineWidth: 1)
+                )
                 .cornerRadius(12)
 
             Button {
@@ -135,26 +152,17 @@ struct CreateLeaderboardView: View {
             } label: {
                 Label("Copy Code", systemImage: "doc.on.doc")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(GradientButtonStyle(fullWidth: false))
 
             Spacer()
 
             Button("Done") { dismiss() }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
+                .buttonStyle(GradientButtonStyle())
                 .padding(.horizontal)
         }
         .padding()
         .navigationTitle("Success")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func toggleGame(_ game: String) {
-        if selectedPresetGames.contains(game) {
-            selectedPresetGames.remove(game)
-        } else {
-            selectedPresetGames.insert(game)
-        }
     }
 
     private func addCustomGame() {
@@ -167,7 +175,7 @@ struct CreateLeaderboardView: View {
     private func createLeaderboard() {
         guard let user = authViewModel.user else { return }
         isCreating = true
-        let allGames = Array(selectedPresetGames) + customGames
+        let allGames = Leaderboard.presetGameTypes + customGames
         let startingPoints = Rank.pointsForRank(tier: startingTier, division: startingDivision)
 
         Task {

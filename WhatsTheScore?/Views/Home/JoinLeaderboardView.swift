@@ -8,15 +8,18 @@ struct JoinLeaderboardView: View {
     @State private var inviteCode = ""
     @State private var isJoining = false
     @State private var joined = false
+    @FocusState private var isCodeFocused: Bool
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 Spacer()
 
+                // Icon with action gradient
                 Image(systemName: "person.badge.plus")
                     .font(.system(size: 60))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(AppColors.actionGradient)
+                    .shadow(color: AppColors.primary.opacity(0.3), radius: 12, x: 0, y: 4)
 
                 Text("Join a Leaderboard")
                     .font(.title2)
@@ -31,8 +34,21 @@ struct JoinLeaderboardView: View {
                     .multilineTextAlignment(.center)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
+                    .focused($isCodeFocused)
                     .padding()
-                    .background(Color(.secondarySystemBackground))
+                    .background(
+                        ZStack {
+                            Color(.secondarySystemBackground)
+                            AppColors.navy.opacity(0.03)
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                isCodeFocused ? AppColors.accent : (inviteCode.isEmpty ? AppColors.subtleBorder : AppColors.subtleBorder),
+                                lineWidth: isCodeFocused ? 2 : 1
+                            )
+                    )
                     .cornerRadius(12)
                     .frame(maxWidth: 250)
                     .onChange(of: inviteCode) { newValue in
@@ -42,7 +58,7 @@ struct JoinLeaderboardView: View {
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(AppColors.accent)
                         .multilineTextAlignment(.center)
                 }
 
@@ -51,19 +67,26 @@ struct JoinLeaderboardView: View {
                 } label: {
                     if isJoining {
                         ProgressView()
+                            .tint(.white)
                     } else {
                         Text("Join")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(GradientButtonStyle())
                 .frame(maxWidth: 250)
                 .disabled(inviteCode.count != 6 || isJoining)
 
                 Spacer()
             }
             .padding()
+            .background(
+                LinearGradient(
+                    colors: [AppColors.navy.opacity(0.08), Color.clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
             .navigationTitle("Join Leaderboard")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
