@@ -97,11 +97,17 @@ struct LeaderboardDetailView: View {
         .listStyle(.plain)
         .overlay {
             if viewModel.leaderboard.members.isEmpty {
-                ContentUnavailableView(
-                    "No Members",
-                    systemImage: "person.3",
-                    description: Text("Share the invite code to add friends.")
-                )
+                VStack(spacing: 12) {
+                    Image(systemName: "person.3")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("No Members")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Share the invite code to add friends.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -115,11 +121,17 @@ struct LeaderboardDetailView: View {
         .listStyle(.plain)
         .overlay {
             if viewModel.matches.isEmpty {
-                ContentUnavailableView(
-                    "No Games Yet",
-                    systemImage: "gamecontroller",
-                    description: Text("Play a game to see results here.")
-                )
+                VStack(spacing: 12) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("No Games Yet")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Play a game to see results here.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

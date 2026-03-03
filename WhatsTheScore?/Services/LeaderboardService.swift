@@ -28,7 +28,8 @@ class LeaderboardService {
             createdAt: Date(),
             gameTypes: gameTypes,
             startingPoints: startingPoints,
-            members: [member]
+            members: [member],
+            memberIds: [creatorId]
         )
 
         try docRef.setData(from: leaderboard)
@@ -69,6 +70,7 @@ class LeaderboardService {
         )
 
         leaderboard.members.append(newMember)
+        leaderboard.memberIds.append(userId)
 
         try doc.reference.setData(from: leaderboard)
 
@@ -184,6 +186,7 @@ class LeaderboardService {
         }
 
         leaderboard.members.removeAll { $0.userId == userId }
+        leaderboard.memberIds.removeAll { $0 == userId }
         try docRef.setData(from: leaderboard)
 
         try await db.collection("users").document(userId).updateData([

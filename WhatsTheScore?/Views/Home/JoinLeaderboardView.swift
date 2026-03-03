@@ -35,7 +35,7 @@ struct JoinLeaderboardView: View {
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(12)
                     .frame(maxWidth: 250)
-                    .onChange(of: inviteCode) { _, newValue in
+                    .onChange(of: inviteCode) { newValue in
                         inviteCode = String(newValue.prefix(6)).uppercased()
                     }
 
