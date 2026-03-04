@@ -5,6 +5,10 @@ struct PointSystem: Identifiable, Equatable {
     let name: String
     let pointsByPlacement: [Int] // index 0 = 1st place, index 1 = 2nd place, etc.
 
+    static func == (lhs: PointSystem, rhs: PointSystem) -> Bool {
+        lhs.name == rhs.name && lhs.pointsByPlacement == rhs.pointsByPlacement
+    }
+
     static func presets(forPlayerCount count: Int) -> [PointSystem] {
         switch count {
         case 2:

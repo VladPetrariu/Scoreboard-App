@@ -3,41 +3,43 @@ import SwiftUI
 // MARK: - App Color Palette
 
 struct AppColors {
-    static let primary = Color(red: 0.816, green: 0.0, blue: 0.0)       // #D00000 Brick Ember
-    static let highlight = Color(red: 1.0, green: 0.729, blue: 0.031)   // #FFBA08 Amber Flame
-    static let accent = Color(red: 0.247, green: 0.533, blue: 0.773)    // #3F88C5 Steel Blue
-    static let navy = Color(red: 0.012, green: 0.169, blue: 0.263)      // #032B43 Deep Space Blue
+    static let primary = Color(.label)                                      // Black (light) / White (dark)
+    static let highlight = Color(.secondaryLabel)                           // Medium grey
+    static let accent = Color(.secondaryLabel)                              // Medium grey
+
+    // Dark color for emphasis (tab bar active, headings)
+    static let navy = Color(.label)
 
     // Derived semantic colors
-    static let pageBackground = navy.opacity(0.06)
-    static let subtleBorder = navy.opacity(0.12)
-    static let sectionHeader = accent
-    static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)     // Harmonized green
-    static let negative = primary                                         // Red for losses
+    static let pageBackground = Color(.systemGroupedBackground)
+    static let subtleBorder = Color(.separator)
+    static let sectionHeader = Color(.secondaryLabel)
+    static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)        // Keep green for wins
+    static let negative = Color(red: 0.82, green: 0.0, blue: 0.0)          // Keep red for losses
 
-    // Gradients
+    // Gradients — simplified to solid greys
     static let trophyGradient = LinearGradient(
-        colors: [highlight, accent],
+        colors: [Color(.label), Color(.secondaryLabel)],
         startPoint: .top, endPoint: .bottom
     )
 
     static let heroGradient = LinearGradient(
-        colors: [navy, navy.opacity(0.92), Color(red: 0.02, green: 0.12, blue: 0.20)],
+        colors: [Color(.systemBackground), Color(.secondarySystemBackground)],
         startPoint: .top, endPoint: .bottom
     )
 
     static let actionGradient = LinearGradient(
-        colors: [accent, Color(red: 0.18, green: 0.40, blue: 0.60)],
+        colors: [Color(.darkGray), Color(.darkGray)],
         startPoint: .leading, endPoint: .trailing
     )
 
     static let warmGradient = LinearGradient(
-        colors: [accent, highlight],
+        colors: [Color(.darkGray), Color(.gray)],
         startPoint: .leading, endPoint: .trailing
     )
 
     static let cardAccentGradient = LinearGradient(
-        colors: [accent, highlight],
+        colors: [Color(.separator), Color(.separator)],
         startPoint: .leading, endPoint: .trailing
     )
 }
@@ -124,26 +126,12 @@ struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(
-                ZStack {
-                    Color(.systemBackground)
-                    AppColors.navy.opacity(0.03)
-                }
-            )
+            .background(Color(.systemBackground))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(AppColors.subtleBorder, lineWidth: 1)
             )
-            .overlay(alignment: .top) {
-                if showAccentLine {
-                    AppColors.cardAccentGradient
-                        .frame(height: 3)
-                        .cornerRadius(1.5)
-                        .padding(.horizontal, 12)
-                }
-            }
             .cornerRadius(16)
-            .shadow(color: AppColors.navy.opacity(0.08), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -201,9 +189,8 @@ struct GradientButtonStyle: ButtonStyle {
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .padding(.vertical, 14)
             .padding(.horizontal, fullWidth ? 0 : 24)
-            .background(AppColors.actionGradient)
+            .background(Color(.darkGray))
             .cornerRadius(12)
-            .shadow(color: AppColors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }

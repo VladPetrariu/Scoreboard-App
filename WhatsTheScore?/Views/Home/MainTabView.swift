@@ -3,40 +3,39 @@ import SwiftUI
 struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var homeViewModel = HomeViewModel()
-    @State private var selectedPage = 1
+    @State private var selectedTab = 1
     @State private var showCreateSheet = false
     @State private var showJoinSheet = false
 
     var body: some View {
-        TabView(selection: $selectedPage) {
-            // Page 0: Create / Join
-            NavigationStack {
-                createJoinPage
-                    .navigationTitle("Get Started")
+        VStack(spacing: 0) {
+            // Content
+            Group {
+                switch selectedTab {
+                case 0:
+                    NavigationStack {
+                        createJoinPage
+                            .navigationTitle("Get Started")
+                    }
+                case 2:
+                    NavigationStack {
+                        ProfileView(leaderboards: homeViewModel.leaderboards)
+                    }
+                default:
+                    NavigationStack {
+                        HomeView(
+                            viewModel: homeViewModel,
+                            showCreateSheet: $showCreateSheet,
+                            showJoinSheet: $showJoinSheet
+                        )
+                        .navigationTitle("My Leaderboards")
+                    }
+                }
             }
-            .tag(0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Page 1: Leaderboards (default)
-            NavigationStack {
-                HomeView(
-                    viewModel: homeViewModel,
-                    showCreateSheet: $showCreateSheet,
-                    showJoinSheet: $showJoinSheet
-                )
-                .navigationTitle("My Leaderboards")
-            }
-            .tag(1)
-
-            // Page 2: Profile
-            NavigationStack {
-                ProfileView(leaderboards: homeViewModel.leaderboards)
-            }
-            .tag(2)
-        }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .overlay(alignment: .bottom) {
-            pageIndicator
-                .padding(.bottom, 8)
+            // Tab bar
+            customTabBar
         }
         .sheet(isPresented: $showCreateSheet) {
             CreateLeaderboardView(viewModel: homeViewModel)
@@ -51,6 +50,49 @@ struct MainTabView: View {
         }
     }
 
+    // MARK: - Custom Tab Bar
+
+    private var customTabBar: some View {
+        HStack(spacing: 0) {
+            tabBarButton(
+                icon: "plus.square",
+                activeIcon: "plus.square.fill",
+                tab: 0
+            )
+            tabBarButton(
+                icon: "trophy",
+                activeIcon: "trophy.fill",
+                tab: 1
+            )
+            tabBarButton(
+                icon: "person",
+                activeIcon: "person.fill",
+                tab: 2
+            )
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .background(
+            Color(.systemBackground)
+                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: -2)
+                .ignoresSafeArea(edges: .bottom)
+        )
+    }
+
+    private func tabBarButton(icon: String, activeIcon: String, tab: Int) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                selectedTab = tab
+            }
+        } label: {
+            Image(systemName: selectedTab == tab ? activeIcon : icon)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(selectedTab == tab ? Color(.label) : .secondary.opacity(0.5))
+                .frame(maxWidth: .infinity, minHeight: 32)
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Create / Join Page
 
     private var createJoinPage: some View {
@@ -60,8 +102,7 @@ struct MainTabView: View {
 
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 50))
-                    .foregroundStyle(AppColors.trophyGradient)
-                    .shadow(color: AppColors.highlight.opacity(0.4), radius: 12, x: 0, y: 0)
+                    .foregroundStyle(.primary)
 
                 Text("Create or Join")
                     .font(.title2)
@@ -79,14 +120,9 @@ struct MainTabView: View {
                     showCreateSheet = true
                 } label: {
                     HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(AppColors.actionGradient)
-                                .frame(width: 48, height: 48)
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                        }
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Create Leaderboard")
@@ -102,7 +138,7 @@ struct MainTabView: View {
                         Image(systemName: "chevron.right")
                             .foregroundStyle(.tertiary)
                     }
-                    .cardStyle(showAccentLine: true)
+                    .cardStyle()
                 }
                 .buttonStyle(.plain)
 
@@ -111,14 +147,9 @@ struct MainTabView: View {
                     showJoinSheet = true
                 } label: {
                     HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(AppColors.warmGradient)
-                                .frame(width: 48, height: 48)
-                            Image(systemName: "person.badge.plus")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                        }
+                        Image(systemName: "person.badge.plus")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Join Leaderboard")
@@ -134,31 +165,12 @@ struct MainTabView: View {
                         Image(systemName: "chevron.right")
                             .foregroundStyle(.tertiary)
                     }
-                    .cardStyle(showAccentLine: true)
+                    .cardStyle()
                 }
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
         }
         .themedBackground()
-    }
-
-    // MARK: - Page Indicator
-
-    private var pageIndicator: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<3, id: \.self) { index in
-                Circle()
-                    .fill(index == selectedPage ? AppColors.accent : AppColors.navy.opacity(0.2))
-                    .frame(width: index == selectedPage ? 8 : 6, height: index == selectedPage ? 8 : 6)
-                    .animation(.easeInOut(duration: 0.2), value: selectedPage)
-            }
-        }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 12)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-        )
     }
 }

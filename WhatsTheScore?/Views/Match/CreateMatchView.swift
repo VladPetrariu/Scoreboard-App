@@ -49,7 +49,7 @@ struct CreateMatchView: View {
                 VStack(spacing: 4) {
                     ZStack {
                         Circle()
-                            .fill(s <= step ? AnyShapeStyle(AppColors.actionGradient) : AnyShapeStyle(AppColors.navy.opacity(0.08)))
+                            .fill(s <= step ? AnyShapeStyle(Color(.darkGray)) : AnyShapeStyle(Color(.systemGray5)))
                             .frame(width: 28, height: 28)
 
                         if s < step {
@@ -59,7 +59,7 @@ struct CreateMatchView: View {
                         } else {
                             Text("\(s)")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(s == step ? .white : AppColors.navy.opacity(0.4))
+                                .foregroundStyle(s == step ? .white : .secondary)
                         }
                     }
 
@@ -72,7 +72,7 @@ struct CreateMatchView: View {
                 // Connecting line
                 if s < 4 {
                     Rectangle()
-                        .fill(s < step ? AnyShapeStyle(AppColors.actionGradient) : AnyShapeStyle(AppColors.navy.opacity(0.08)))
+                        .fill(s < step ? AnyShapeStyle(Color(.darkGray)) : AnyShapeStyle(Color(.systemGray5)))
                         .frame(height: 2)
                         .padding(.bottom, 18) // align with circle center
                 }
@@ -96,7 +96,7 @@ struct CreateMatchView: View {
                             Spacer()
                             if viewModel.selectedGameType == game {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(AppColors.primary)
+                                    .foregroundStyle(.primary)
                             }
                             Image(systemName: "chevron.right")
                                 .font(.caption)
@@ -143,7 +143,7 @@ struct CreateMatchView: View {
                                 Spacer()
                                 if isSelected {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(AppColors.primary)
+                                        .foregroundStyle(.primary)
                                         .font(.title3)
                                 } else {
                                     Image(systemName: "circle")
@@ -152,18 +152,12 @@ struct CreateMatchView: View {
                                 }
                             }
                             .padding(16)
-                            .background(
-                                ZStack {
-                                    Color(.systemBackground)
-                                    AppColors.navy.opacity(0.03)
-                                }
-                            )
+                            .background(Color(.systemBackground))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(isSelected ? AppColors.primary : AppColors.subtleBorder, lineWidth: isSelected ? 1.5 : 1)
+                                    .stroke(isSelected ? Color(.label) : Color(.separator), lineWidth: isSelected ? 1.5 : 1)
                             )
                             .cornerRadius(16)
-                            .shadow(color: AppColors.navy.opacity(0.06), radius: 6, x: 0, y: 2)
                         }
                         .buttonStyle(.plain)
                     }
@@ -211,7 +205,7 @@ struct CreateMatchView: View {
                                 Spacer()
                                 if isSelected {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(AppColors.primary)
+                                        .foregroundStyle(.primary)
                                         .font(.title3)
                                 } else {
                                     Image(systemName: "circle")
@@ -220,7 +214,7 @@ struct CreateMatchView: View {
                                 }
                             }
                         }
-                        .listRowBackground(isSelected ? AppColors.primary.opacity(0.1) : nil)
+                        .listRowBackground(isSelected ? Color(.systemGray5) : nil)
                     }
 
                     Button {
@@ -236,7 +230,7 @@ struct CreateMatchView: View {
                             Spacer()
                             if viewModel.useCustomPoints {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(AppColors.primary)
+                                    .foregroundStyle(.primary)
                                     .font(.title3)
                             } else {
                                 Image(systemName: "circle")
@@ -245,7 +239,7 @@ struct CreateMatchView: View {
                             }
                         }
                     }
-                    .listRowBackground(viewModel.useCustomPoints ? AppColors.primary.opacity(0.1) : nil)
+                    .listRowBackground(viewModel.useCustomPoints ? Color(.systemGray5) : nil)
                 } header: {
                     Text("Point System")
                         .sectionHeaderStyle()
@@ -280,7 +274,7 @@ struct CreateMatchView: View {
                         if viewModel.didSavePointSystem {
                             Label("This point system will appear as an option for future games.", systemImage: "checkmark.circle")
                                 .font(.caption)
-                                .foregroundStyle(AppColors.accent)
+                                .foregroundStyle(.primary)
                         }
                     } header: {
                         Text("Save to Leaderboard")
@@ -352,12 +346,12 @@ struct CreateMatchView: View {
                 } label: {
                     Text("Back")
                         .fontWeight(.semibold)
-                        .foregroundStyle(AppColors.navy)
+                        .foregroundStyle(.primary)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 24)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(AppColors.navy.opacity(0.3), lineWidth: 1.5)
+                                .stroke(Color(.separator), lineWidth: 1.5)
                         )
                 }
 
@@ -389,12 +383,12 @@ struct CreateMatchView: View {
             } label: {
                 Text("Back")
                     .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.navy)
+                    .foregroundStyle(.primary)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 24)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(AppColors.navy.opacity(0.3), lineWidth: 1.5)
+                            .stroke(Color(.separator), lineWidth: 1.5)
                     )
             }
 

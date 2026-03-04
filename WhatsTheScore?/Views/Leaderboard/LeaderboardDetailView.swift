@@ -114,11 +114,11 @@ struct LeaderboardDetailView: View {
                         Text(tab)
                             .font(.subheadline)
                             .fontWeight(isActive ? .bold : .medium)
-                            .foregroundStyle(isActive ? AppColors.primary : .secondary)
+                            .foregroundStyle(isActive ? .primary : .secondary)
 
-                        // Gradient underline indicator
+                        // Underline indicator
                         if isActive {
-                            AppColors.actionGradient
+                            Color(.label)
                                 .frame(height: 3)
                                 .cornerRadius(1.5)
                         } else {
@@ -134,7 +134,7 @@ struct LeaderboardDetailView: View {
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(AppColors.navy.opacity(0.03))
+                .fill(Color(.secondarySystemBackground))
         )
     }
 
@@ -269,13 +269,13 @@ private struct TopMemberCard: View {
                         if isCurrentUser {
                             Text("(You)")
                                 .font(.caption2)
-                                .foregroundStyle(AppColors.primary)
+                                .foregroundStyle(.secondary)
                                 .fontWeight(.semibold)
                         }
                     }
                     Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
                         .font(.caption)
-                        .foregroundStyle(AppColors.accent)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -293,7 +293,7 @@ private struct TopMemberCard: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(AppColors.navy.opacity(0.08))
+                        .fill(Color(.systemGray5))
                         .frame(height: 4)
                     RoundedRectangle(cornerRadius: 2)
                         .fill(RankTheme.gradient(for: member.rank.tier))
@@ -304,30 +304,15 @@ private struct TopMemberCard: View {
             .padding(.horizontal, 14)
             .padding(.bottom, 10)
         }
-        .background(
-            ZStack {
-                Color(.systemBackground)
-                AppColors.navy.opacity(0.03)
-            }
-        )
-        .overlay(alignment: .leading) {
-            // Left accent strip with position gradient
-            RoundedRectangle(cornerRadius: 2)
-                .fill(RankTheme.positionGradient(position))
-                .frame(width: 5)
-                .padding(.vertical, 4)
-        }
+        .background(Color(.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
-                    isCurrentUser
-                        ? AnyShapeStyle(AppColors.actionGradient)
-                        : AnyShapeStyle(AppColors.subtleBorder),
+                    isCurrentUser ? Color(.label) : Color(.separator),
                     lineWidth: isCurrentUser ? 1.5 : 1
                 )
         )
         .cornerRadius(16)
-        .shadow(color: AppColors.navy.opacity(0.08), radius: 8, x: 0, y: 3)
     }
 }
 
@@ -345,14 +330,14 @@ struct MatchRowView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(AppColors.navy.opacity(0.8))
+                    .background(Color(.darkGray))
                     .cornerRadius(8)
 
                 Spacer()
 
                 Text(match.createdAt, style: .date)
                     .font(.caption)
-                    .foregroundStyle(AppColors.accent)
+                    .foregroundStyle(.secondary)
             }
 
             ForEach(match.sortedPlayers) { player in

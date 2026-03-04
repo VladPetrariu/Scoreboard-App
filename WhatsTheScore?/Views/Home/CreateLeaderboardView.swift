@@ -112,12 +112,10 @@ struct CreateLeaderboardView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            // Gradient circle checkmark
             ZStack {
                 Circle()
-                    .fill(AppColors.actionGradient)
+                    .fill(Color(.darkGray))
                     .frame(width: 80, height: 80)
-                    .shadow(color: AppColors.primary.opacity(0.3), radius: 12, x: 0, y: 4)
 
                 Image(systemName: "checkmark")
                     .font(.system(size: 36, weight: .bold))
@@ -133,17 +131,11 @@ struct CreateLeaderboardView: View {
 
             Text(leaderboard.inviteCode)
                 .font(.system(size: 36, weight: .bold, design: .monospaced))
-                .foregroundStyle(AppColors.navy)
                 .padding()
-                .background(
-                    ZStack {
-                        Color(.secondarySystemBackground)
-                        AppColors.navy.opacity(0.03)
-                    }
-                )
+                .background(Color(.secondarySystemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(AppColors.subtleBorder, lineWidth: 1)
+                        .stroke(Color(.separator), lineWidth: 1)
                 )
                 .cornerRadius(12)
 

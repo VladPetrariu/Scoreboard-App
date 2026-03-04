@@ -15,11 +15,9 @@ struct JoinLeaderboardView: View {
             VStack(spacing: 24) {
                 Spacer()
 
-                // Icon with action gradient
                 Image(systemName: "person.badge.plus")
                     .font(.system(size: 60))
-                    .foregroundStyle(AppColors.actionGradient)
-                    .shadow(color: AppColors.primary.opacity(0.3), radius: 12, x: 0, y: 4)
+                    .foregroundStyle(.primary)
 
                 Text("Join a Leaderboard")
                     .font(.title2)
@@ -36,16 +34,11 @@ struct JoinLeaderboardView: View {
                     .autocorrectionDisabled()
                     .focused($isCodeFocused)
                     .padding()
-                    .background(
-                        ZStack {
-                            Color(.secondarySystemBackground)
-                            AppColors.navy.opacity(0.03)
-                        }
-                    )
+                    .background(Color(.secondarySystemBackground))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(
-                                isCodeFocused ? AppColors.accent : (inviteCode.isEmpty ? AppColors.subtleBorder : AppColors.subtleBorder),
+                                isCodeFocused ? Color(.label) : Color(.separator),
                                 lineWidth: isCodeFocused ? 2 : 1
                             )
                     )
@@ -58,7 +51,7 @@ struct JoinLeaderboardView: View {
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.caption)
-                        .foregroundStyle(AppColors.accent)
+                        .foregroundStyle(.red)
                         .multilineTextAlignment(.center)
                 }
 
@@ -80,12 +73,8 @@ struct JoinLeaderboardView: View {
             }
             .padding()
             .background(
-                LinearGradient(
-                    colors: [AppColors.navy.opacity(0.08), Color.clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
             )
             .navigationTitle("Join Leaderboard")
             .navigationBarTitleDisplayMode(.inline)

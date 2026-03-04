@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseFirestore
 
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -8,10 +9,10 @@ struct ProfileView: View {
     var leaderboards: [Leaderboard] = []
 
     private var stats: PlayerStats {
-        guard let userId = authViewModel.user?.id else {
+        guard let user = authViewModel.user else {
             return PlayerStats(totalGames: 0, totalWins: 0, winRate: 0, highestRank: nil)
         }
-        return PlayerStats.compute(userId: userId, leaderboards: leaderboards)
+        return PlayerStats.compute(user: user, leaderboards: leaderboards)
     }
 
     var body: some View {
@@ -19,18 +20,17 @@ struct ProfileView: View {
             VStack(spacing: 20) {
                 // User info card
                 VStack(spacing: 0) {
-                    // Navy gradient header
+                    // Grey gradient header
                     LinearGradient(
-                        colors: [AppColors.navy, AppColors.navy.opacity(0.7)],
+                        colors: [Color(.systemGray3), Color(.systemGray4)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                     .frame(height: 60)
                     .overlay(alignment: .bottomLeading) {
-                        // Avatar overlapping the header
                         Image(systemName: "person.circle.fill")
                             .font(.system(size: 56))
-                            .foregroundStyle(AppColors.warmGradient)
+                            .foregroundStyle(.secondary)
                             .background(Circle().fill(Color(.systemBackground)).frame(width: 52, height: 52))
                             .offset(x: 16, y: 28)
                     }
@@ -41,7 +41,7 @@ struct ProfileView: View {
                             .fontWeight(.semibold)
                         Text(authViewModel.user?.email ?? "")
                             .font(.caption)
-                            .foregroundStyle(AppColors.accent)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 36)
@@ -51,30 +51,26 @@ struct ProfileView: View {
                 .background(Color(.systemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppColors.subtleBorder, lineWidth: 1)
+                        .stroke(Color(.separator), lineWidth: 1)
                 )
                 .cornerRadius(16)
-                .shadow(color: AppColors.navy.opacity(0.08), radius: 8, x: 0, y: 2)
 
-                // Stats grid — always visible
+                // Stats grid
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                     StatCard(
                         icon: "gamecontroller.fill",
                         value: "\(stats.totalGames)",
-                        label: "Games Played",
-                        color: AppColors.navy
+                        label: "Games Played"
                     )
                     StatCard(
                         icon: "trophy.fill",
                         value: "\(stats.totalWins)",
-                        label: "Wins",
-                        color: AppColors.accent
+                        label: "Wins"
                     )
                     StatCard(
                         icon: "percent",
                         value: stats.totalGames > 0 ? String(format: "%.0f%%", stats.winRate) : "0%",
-                        label: "Win Rate",
-                        color: AppColors.accent
+                        label: "Win Rate"
                     )
                     if let highest = stats.highestRank {
                         StatCard(
@@ -87,8 +83,7 @@ struct ProfileView: View {
                         StatCard(
                             icon: "questionmark.circle",
                             value: "-",
-                            label: "Highest Rank",
-                            color: .secondary
+                            label: "Highest Rank"
                         )
                     }
                 }
@@ -101,7 +96,7 @@ struct ProfileView: View {
                         HStack {
                             if isResettingStats {
                                 ProgressView()
-                                    .tint(AppColors.accent)
+                                    .tint(.secondary)
                             } else {
                                 Image(systemName: "arrow.counterclockwise")
                             }
@@ -109,14 +104,14 @@ struct ProfileView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .foregroundStyle(AppColors.accent)
+                        .foregroundStyle(.secondary)
                     }
                     .disabled(isResettingStats)
                     .padding(16)
-                    .background(AppColors.accent.opacity(0.06))
+                    .background(Color(.systemBackground))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppColors.accent.opacity(0.2), lineWidth: 1)
+                            .stroke(Color(.separator), lineWidth: 1)
                     )
                     .cornerRadius(16)
                 }
@@ -131,13 +126,13 @@ struct ProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .foregroundStyle(AppColors.primary)
+                    .foregroundStyle(.red)
                 }
                 .padding(16)
-                .background(AppColors.primary.opacity(0.06))
+                .background(Color(.systemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppColors.primary.opacity(0.2), lineWidth: 1)
+                        .stroke(Color(.separator), lineWidth: 1)
                 )
                 .cornerRadius(16)
             }
@@ -158,16 +153,22 @@ struct ProfileView: View {
                 resetStats()
             }
         } message: {
-            Text("This will reset your games played, wins, and points across all leaderboards. Your rank will return to the starting rank of each leaderboard.")
+            Text("This will reset your profile stats (games played, wins, and win rate) to zero. Your leaderboard stats and ranks will not be affected.")
         }
     }
 
     private func resetStats() {
-        guard let userId = authViewModel.user?.id else { return }
-        let ids = leaderboards.map { $0.id }
+        guard let user = authViewModel.user else { return }
+        let rawStats = PlayerStats.computeRaw(userId: user.id, leaderboards: leaderboards)
         isResettingStats = true
         Task {
-            try? await LeaderboardService.shared.resetMemberStats(userId: userId, leaderboardIds: ids)
+            let db = Firestore.firestore()
+            try? await db.collection("users").document(user.id).updateData([
+                "statsResetGamesPlayed": rawStats.totalGames,
+                "statsResetWins": rawStats.totalWins
+            ])
+            authViewModel.user?.statsResetGamesPlayed = rawStats.totalGames
+            authViewModel.user?.statsResetWins = rawStats.totalWins
             isResettingStats = false
         }
     }
@@ -179,14 +180,13 @@ private struct StatCard: View {
     let icon: String
     let value: String
     let label: String
-    let color: Color
+    var color: Color = .primary
 
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 22))
                 .foregroundStyle(color)
-                .shadow(color: color.opacity(0.3), radius: 6, x: 0, y: 2)
 
             Text(value)
                 .font(.title2)
@@ -196,23 +196,17 @@ private struct StatCard: View {
 
             Text(label)
                 .font(.caption)
-                .foregroundStyle(AppColors.accent)
+                .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(16)
-        .background(
-            ZStack {
-                Color(.systemBackground)
-                color.opacity(0.04)
-            }
-        )
+        .background(Color(.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(color.opacity(0.12), lineWidth: 1)
+                .stroke(Color(.separator), lineWidth: 1)
         )
         .cornerRadius(16)
-        .shadow(color: AppColors.navy.opacity(0.06), radius: 6, x: 0, y: 2)
     }
 }
 
@@ -224,7 +218,7 @@ private struct PlayerStats {
     let winRate: Double
     let highestRank: Rank?
 
-    static func compute(userId: String, leaderboards: [Leaderboard]) -> PlayerStats {
+    static func computeRaw(userId: String, leaderboards: [Leaderboard]) -> PlayerStats {
         var totalGames = 0
         var totalWins = 0
         var highestRank: Rank? = nil
@@ -247,5 +241,13 @@ private struct PlayerStats {
 
         let winRate = totalGames > 0 ? (Double(totalWins) / Double(totalGames)) * 100 : 0
         return PlayerStats(totalGames: totalGames, totalWins: totalWins, winRate: winRate, highestRank: highestRank)
+    }
+
+    static func compute(user: AppUser, leaderboards: [Leaderboard]) -> PlayerStats {
+        let raw = computeRaw(userId: user.id, leaderboards: leaderboards)
+        let adjustedGames = max(0, raw.totalGames - user.statsResetGamesPlayed)
+        let adjustedWins = max(0, raw.totalWins - user.statsResetWins)
+        let winRate = adjustedGames > 0 ? (Double(adjustedWins) / Double(adjustedGames)) * 100 : 0
+        return PlayerStats(totalGames: adjustedGames, totalWins: adjustedWins, winRate: winRate, highestRank: raw.highestRank)
     }
 }

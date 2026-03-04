@@ -23,9 +23,7 @@ struct HomeView: View {
         VStack(spacing: 20) {
             Image(systemName: "trophy.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(AppColors.trophyGradient)
-                .shadow(color: AppColors.highlight.opacity(0.4), radius: 12, x: 0, y: 0)
-                .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 4)
+                .foregroundStyle(.primary)
 
             Text("No Leaderboards Yet")
                 .font(.title2)
@@ -49,12 +47,12 @@ struct HomeView: View {
                 } label: {
                     Label("Join", systemImage: "person.badge.plus")
                         .fontWeight(.semibold)
-                        .foregroundStyle(AppColors.navy)
+                        .foregroundStyle(.primary)
                         .padding(.vertical, 14)
                         .padding(.horizontal, 24)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(AppColors.navy.opacity(0.3), lineWidth: 1.5)
+                                .stroke(Color(.separator), lineWidth: 1.5)
                         )
                 }
             }
@@ -79,11 +77,6 @@ struct HomeView: View {
 
     private func leaderboardCard(_ leaderboard: Leaderboard) -> some View {
         HStack(spacing: 12) {
-            // Left accent strip with action gradient
-            RoundedRectangle(cornerRadius: 2)
-                .fill(AppColors.actionGradient)
-                .frame(width: 4)
-
             VStack(alignment: .leading, spacing: 6) {
                 Text(leaderboard.name)
                     .font(.headline)
@@ -127,6 +120,6 @@ struct HomeView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
-        .cardStyle(showAccentLine: true)
+        .cardStyle()
     }
 }

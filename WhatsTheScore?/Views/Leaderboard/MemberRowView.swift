@@ -27,14 +27,14 @@ struct MemberRowView: View {
                     if isCurrentUser {
                         Text("(You)")
                             .font(.caption2)
-                            .foregroundStyle(AppColors.primary)
+                            .foregroundStyle(.secondary)
                             .fontWeight(.semibold)
                     }
                 }
 
                 Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
                     .font(.caption)
-                    .foregroundStyle(AppColors.accent)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -53,7 +53,7 @@ struct MemberRowView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(AppColors.navy.opacity(0.08))
+                        .fill(Color(.systemGray5))
                         .frame(height: 4)
                     RoundedRectangle(cornerRadius: 2)
                         .fill(RankTheme.gradient(for: member.rank.tier))
@@ -63,25 +63,12 @@ struct MemberRowView: View {
             .frame(height: 4)
             .padding(.horizontal, 14)
         }
-        .background(
-            ZStack {
-                Color(.systemBackground)
-                AppColors.navy.opacity(0.03)
-            }
-        )
+        .background(Color(.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isCurrentUser ? AppColors.primary.opacity(0.4) : AppColors.subtleBorder, lineWidth: isCurrentUser ? 1.5 : 1)
+                .stroke(isCurrentUser ? Color(.label) : Color(.separator), lineWidth: isCurrentUser ? 1.5 : 1)
         )
-        .overlay(alignment: .leading) {
-            // Left accent strip
-            RoundedRectangle(cornerRadius: 2)
-                .fill(RankTheme.gradient(for: member.rank.tier))
-                .frame(width: 4)
-                .padding(.vertical, 6)
-        }
         .cornerRadius(16)
-        .shadow(color: AppColors.navy.opacity(0.06), radius: 6, x: 0, y: 2)
     }
 
     private var positionCircle: some View {
@@ -92,12 +79,12 @@ struct MemberRowView: View {
                     .frame(width: 32, height: 32)
             } else {
                 Circle()
-                    .fill(AppColors.navy.opacity(0.10))
+                    .fill(Color(.systemGray5))
                     .frame(width: 32, height: 32)
             }
             Text("\(position)")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(position <= 3 ? .white : AppColors.navy)
+                .foregroundStyle(position <= 3 ? .white : .primary)
         }
     }
 }
