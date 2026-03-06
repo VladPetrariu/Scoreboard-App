@@ -152,9 +152,9 @@ struct HomeView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 14)
         }
-        .background(AppColors.cardBackground)
-        .cornerRadius(20)
-        .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
+        .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
     }
 
     private func currentUserRankGradient(in leaderboard: Leaderboard) -> LinearGradient {

@@ -15,7 +15,6 @@ struct MainTabView: View {
                 case 0:
                     NavigationStack {
                         createJoinPage
-                            .navigationTitle("Get Started")
                     }
                 case 2:
                     NavigationStack {
@@ -48,6 +47,13 @@ struct MainTabView: View {
                 await homeViewModel.fetchLeaderboards(userId: userId)
             }
         }
+        .onChange(of: selectedTab) { newTab in
+            if newTab == 2, let userId = authViewModel.user?.id {
+                Task {
+                    await homeViewModel.fetchLeaderboards(userId: userId)
+                }
+            }
+        }
     }
 
     // MARK: - Custom Tab Bar
@@ -67,19 +73,20 @@ struct MainTabView: View {
             tabBarButton(
                 icon: "person",
                 activeIcon: "person.fill",
-                tab: 2
+                tab: 2,
+                label: "Profile"
             )
         }
         .padding(.top, 12)
         .padding(.bottom, 8)
         .background(
-            AppColors.cardBackground
-                .shadow(color: Color.orange.opacity(0.08), radius: 12, x: 0, y: -4)
+            AppColors.tabBarSurface
+                .shadow(color: AppColors.flame.opacity(0.06), radius: 12, x: 0, y: -4)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
 
-    private func tabBarButton(icon: String, activeIcon: String, tab: Int) -> some View {
+    private func tabBarButton(icon: String, activeIcon: String, tab: Int, label: String? = nil) -> some View {
         let isActive = selectedTab == tab
 
         return Button {
@@ -87,15 +94,21 @@ struct MainTabView: View {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Image(systemName: isActive ? activeIcon : icon)
                     .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(isActive ? AppColors.flame : .secondary.opacity(0.4))
 
-                // Pill indicator
-                Capsule()
-                    .fill(isActive ? AppColors.flame : Color.clear)
-                    .frame(width: 20, height: 4)
+                if let label {
+                    Text(label)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(isActive ? AppColors.flame : .secondary.opacity(0.4))
+                } else {
+                    // Pill indicator
+                    Capsule()
+                        .fill(isActive ? AppColors.flame : Color.clear)
+                        .frame(width: 20, height: 4)
+                }
             }
             .frame(maxWidth: .infinity, minHeight: 32)
         }
@@ -162,9 +175,9 @@ struct MainTabView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 16)
                     }
-                    .background(AppColors.cardBackground)
-                    .cornerRadius(20)
-                    .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
+                    .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
 
@@ -198,9 +211,9 @@ struct MainTabView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 16)
                     }
-                    .background(AppColors.cardBackground)
-                    .cornerRadius(20)
-                    .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
+                    .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
             }

@@ -20,20 +20,21 @@ struct ProfileView: View {
             VStack(spacing: 20) {
                 // User info card
                 VStack(spacing: 0) {
-                    // Grey gradient header
-                    LinearGradient(
-                        colors: [Color(.systemGray3), Color(.systemGray4)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .frame(height: 60)
-                    .overlay(alignment: .bottomLeading) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 56))
-                            .foregroundStyle(.secondary)
-                            .background(Circle().fill(Color(.systemBackground)).frame(width: 52, height: 52))
+                    // Blue gradient header
+                    AppColors.heroGradient
+                        .frame(height: 60)
+                        .overlay(alignment: .bottomLeading) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.sunlight)
+                                    .frame(width: 56, height: 56)
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 26))
+                                    .foregroundStyle(.white)
+                            }
+                            .background(Circle().fill(AppColors.cardBackground).frame(width: 60, height: 60))
                             .offset(x: 16, y: 28)
-                    }
+                        }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(authViewModel.user?.displayName ?? "Player")
@@ -48,12 +49,9 @@ struct ProfileView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                 }
-                .background(Color(.systemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color(.separator), lineWidth: 1)
-                )
-                .cornerRadius(16)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppColors.glassBorder))
+                .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
 
                 // Stats grid
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
@@ -93,54 +91,62 @@ struct ProfileView: View {
                     Button {
                         showResetStatsConfirmation = true
                     } label: {
-                        HStack {
-                            if isResettingStats {
-                                ProgressView()
-                                    .tint(.secondary)
-                            } else {
-                                Image(systemName: "arrow.counterclockwise")
+                        HStack(spacing: 0) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(AppColors.cardAccentGradient)
+                                .frame(width: 4)
+                                .padding(.vertical, 10)
+
+                            HStack {
+                                if isResettingStats {
+                                    ProgressView()
+                                        .tint(.secondary)
+                                } else {
+                                    Image(systemName: "arrow.counterclockwise")
+                                }
+                                Text("Reset Stats")
                             }
-                            Text("Reset Stats")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .foregroundStyle(.secondary)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .foregroundStyle(.secondary)
                     }
                     .disabled(isResettingStats)
-                    .padding(16)
-                    .background(Color(.systemBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(.separator), lineWidth: 1)
-                    )
-                    .cornerRadius(16)
+                    .padding(.trailing, 16)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppColors.glassBorder))
+                    .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
                 }
 
                 // Sign out
                 Button(role: .destructive) {
                     showSignOutConfirmation = true
                 } label: {
-                    HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("Sign Out")
+                    HStack(spacing: 0) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(LinearGradient(colors: [.red.opacity(0.8), .red.opacity(0.5)], startPoint: .top, endPoint: .bottom))
+                            .frame(width: 4)
+                            .padding(.vertical, 10)
+
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Sign Out")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(.red)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .foregroundStyle(.red)
                 }
-                .padding(16)
-                .background(Color(.systemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color(.separator), lineWidth: 1)
-                )
-                .cornerRadius(16)
+                .padding(.trailing, 16)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppColors.glassBorder))
+                .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
         }
         .themedBackground()
-        .navigationTitle("Profile")
+        .toolbar(.hidden, for: .navigationBar)
         .confirmationDialog("Sign Out", isPresented: $showSignOutConfirmation) {
             Button("Sign Out", role: .destructive) {
                 authViewModel.signOut()
@@ -183,30 +189,34 @@ private struct StatCard: View {
     var color: Color = .primary
 
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundStyle(color)
+        HStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(AppColors.cardAccentGradient)
+                .frame(width: 3)
+                .padding(.vertical, 10)
 
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(color)
 
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+                Text(value)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(12)
         }
-        .frame(maxWidth: .infinity)
-        .padding(16)
-        .background(Color(.systemBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.separator), lineWidth: 1)
-        )
-        .cornerRadius(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppColors.glassBorder))
+        .shadow(color: AppColors.flame.opacity(0.10), radius: 10, x: 0, y: 3)
     }
 }
 

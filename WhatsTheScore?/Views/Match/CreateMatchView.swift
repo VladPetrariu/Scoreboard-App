@@ -49,7 +49,7 @@ struct CreateMatchView: View {
                 VStack(spacing: 4) {
                     ZStack {
                         Circle()
-                            .fill(s <= step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color(.systemGray5)))
+                            .fill(s <= step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color.white.opacity(0.10)))
                             .frame(width: 28, height: 28)
 
                         if s < step {
@@ -72,7 +72,7 @@ struct CreateMatchView: View {
                 // Connecting line
                 if s < 4 {
                     Rectangle()
-                        .fill(s < step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color(.systemGray5)))
+                        .fill(s < step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color.white.opacity(0.10)))
                         .frame(height: 2)
                         .padding(.bottom, 18) // align with circle center
                 }
@@ -152,7 +152,7 @@ struct CreateMatchView: View {
                                 }
                             }
                             .padding(16)
-                            .background(Color(.systemBackground))
+                            .background(.ultraThinMaterial)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(isSelected ? Color(.label) : Color(.separator), lineWidth: isSelected ? 1.5 : 1)
@@ -214,7 +214,7 @@ struct CreateMatchView: View {
                                 }
                             }
                         }
-                        .listRowBackground(isSelected ? Color(.systemGray5) : nil)
+                        .listRowBackground(isSelected ? Color.white.opacity(0.10) : nil)
                     }
 
                     Button {
@@ -239,7 +239,7 @@ struct CreateMatchView: View {
                             }
                         }
                     }
-                    .listRowBackground(viewModel.useCustomPoints ? Color(.systemGray5) : nil)
+                    .listRowBackground(viewModel.useCustomPoints ? Color.white.opacity(0.10) : nil)
                 } header: {
                     Text("Point System")
                         .sectionHeaderStyle()

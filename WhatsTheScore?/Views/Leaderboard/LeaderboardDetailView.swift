@@ -132,7 +132,7 @@ struct LeaderboardDetailView: View {
         .padding(4)
         .background(
             Capsule()
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.white.opacity(0.08))
         )
     }
 

@@ -132,7 +132,7 @@ struct CreateLeaderboardView: View {
             Text(leaderboard.inviteCode)
                 .font(.system(size: 36, weight: .bold, design: .monospaced))
                 .padding()
-                .background(Color(.secondarySystemBackground))
+                .background(.ultraThinMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color(.separator), lineWidth: 1)

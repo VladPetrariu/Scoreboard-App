@@ -1,12 +1,12 @@
 import SwiftUI
 
-// MARK: - App Color Palette (Orange & Gold Vibrant)
+// MARK: - App Color Palette (Blue)
 
 struct AppColors {
     // Primary palette
-    static let flame = Color(red: 1.0, green: 0.42, blue: 0.21)       // #FF6B35 — Deep Orange
-    static let amber = Color(red: 1.0, green: 0.65, blue: 0.15)       // #FFA726 — Golden Amber
-    static let sunlight = Color(red: 1.0, green: 0.84, blue: 0.31)    // #FFD54F — Warm Gold
+    static let flame = Color(red: 0.15, green: 0.39, blue: 0.92)      // #2663EB — Royal Blue
+    static let amber = Color(red: 0.23, green: 0.51, blue: 0.96)      // #3B82F5 — Bright Blue
+    static let sunlight = Color(red: 0.38, green: 0.65, blue: 0.98)   // #60A5FA — Sky Blue
 
     // Semantic aliases
     static let primary = flame
@@ -14,17 +14,23 @@ struct AppColors {
     static let highlight = sunlight
 
     // Adaptive backgrounds
-    static let warmWhiteLight = Color(red: 1.0, green: 0.97, blue: 0.94)    // #FFF8F0
-    static let deepCharcoalDark = Color(red: 0.10, green: 0.10, blue: 0.18) // #1A1A2E
-    static let darkSurface = Color(red: 0.145, green: 0.145, blue: 0.25)    // #252540
+    static let warmWhiteLight = Color(red: 0.94, green: 0.96, blue: 1.0)    // #F0F5FF
+    static let deepCharcoalDark = Color(red: 0.08, green: 0.10, blue: 0.20) // #141A33
+    static let darkSurface = Color(red: 0.12, green: 0.14, blue: 0.27)      // #1F2445
 
     static var pageBackground: Color {
-        Color(.systemGroupedBackground)
+        deepCharcoalDark
     }
 
     static var cardBackground: Color {
-        Color(.systemBackground)
+        darkSurface
     }
+
+    // Distinct tab bar surface
+    static let tabBarSurface = Color(red: 0.10, green: 0.12, blue: 0.24)
+
+    // Subtle glass border for frosted cards
+    static let glassBorder = Color.white.opacity(0.08)
 
     // Keep semantic colors
     static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)
@@ -151,9 +157,9 @@ struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(AppColors.cardBackground)
-            .cornerRadius(20)
-            .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
+            .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
     }
 }
 

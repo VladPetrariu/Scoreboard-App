@@ -7,7 +7,7 @@ struct LoginView: View {
     var body: some View {
         ZStack {
             // Background
-            Color(.systemBackground)
+            AppColors.pageBackground
                 .ignoresSafeArea()
 
             // Main content
@@ -16,9 +16,16 @@ struct LoginView: View {
 
                 // App icon & title
                 VStack(spacing: 16) {
-                    Image(systemName: "trophy.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(.primary)
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.heroGradient)
+                            .frame(width: 120, height: 120)
+                            .shadow(color: AppColors.flame.opacity(0.4), radius: 16, x: 0, y: 6)
+
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 52))
+                            .foregroundStyle(.white)
+                    }
 
                     Text("WhatsTheScore?")
                         .font(.largeTitle)
@@ -26,7 +33,7 @@ struct LoginView: View {
 
                     Text("Compete with friends.\nClimb the ranks.")
                         .font(.title3)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppColors.flame)
                         .multilineTextAlignment(.center)
                 }
 

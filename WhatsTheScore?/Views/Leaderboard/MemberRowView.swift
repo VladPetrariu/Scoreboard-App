@@ -61,7 +61,7 @@ struct MemberRowView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2.5)
-                        .fill(Color(.systemGray5))
+                        .fill(Color.white.opacity(0.10))
                         .frame(height: 5)
                     RoundedRectangle(cornerRadius: 2.5)
                         .fill(RankTheme.gradient(for: member.rank.tier))
@@ -71,13 +71,12 @@ struct MemberRowView: View {
             .frame(height: 5)
             .padding(.horizontal, 14)
         }
-        .background(AppColors.cardBackground)
-        .cornerRadius(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isCurrentUser ? AppColors.flame : Color.clear, lineWidth: isCurrentUser ? 1.5 : 0)
+                .stroke(isCurrentUser ? AppColors.flame : AppColors.glassBorder, lineWidth: isCurrentUser ? 1.5 : 1)
         )
-        .shadow(color: Color.orange.opacity(0.12), radius: 10, x: 0, y: 3)
+        .shadow(color: AppColors.flame.opacity(0.10), radius: 10, x: 0, y: 3)
     }
 
     private var positionCircle: some View {
@@ -89,7 +88,7 @@ struct MemberRowView: View {
                     .shadow(color: RankTheme.positionGlowColor(position).opacity(0.5), radius: 6, x: 0, y: 0)
             } else {
                 Circle()
-                    .fill(Color(.systemGray5))
+                    .fill(Color.white.opacity(0.10))
                     .frame(width: 32, height: 32)
             }
             Text("\(position)")

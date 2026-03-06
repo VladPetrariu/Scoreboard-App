@@ -34,7 +34,7 @@ struct JoinLeaderboardView: View {
                     .autocorrectionDisabled()
                     .focused($isCodeFocused)
                     .padding()
-                    .background(Color(.secondarySystemBackground))
+                    .background(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(
@@ -73,7 +73,7 @@ struct JoinLeaderboardView: View {
             }
             .padding()
             .background(
-                Color(.systemGroupedBackground)
+                AppColors.pageBackground
                     .ignoresSafeArea()
             )
             .navigationTitle("Join Leaderboard")
