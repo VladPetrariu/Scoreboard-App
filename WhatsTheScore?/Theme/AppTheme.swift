@@ -15,8 +15,8 @@ struct AppColors {
 
     // Adaptive backgrounds
     static let warmWhiteLight = Color(red: 0.94, green: 0.96, blue: 1.0)    // #F0F5FF
-    static let deepCharcoalDark = Color(red: 0.08, green: 0.10, blue: 0.20) // #141A33
-    static let darkSurface = Color(red: 0.12, green: 0.14, blue: 0.27)      // #1F2445
+    static let deepCharcoalDark = Color(red: 0.059, green: 0.090, blue: 0.165) // #0f172a
+    static let darkSurface = Color(red: 0.043, green: 0.067, blue: 0.125)      // #0b1120
 
     static var pageBackground: Color {
         deepCharcoalDark
@@ -30,7 +30,7 @@ struct AppColors {
     static let tabBarSurface = Color(red: 0.10, green: 0.12, blue: 0.24)
 
     // Subtle glass border for frosted cards
-    static let glassBorder = Color.white.opacity(0.08)
+    static let glassBorder = Color.white.opacity(0.10)
 
     // Keep semantic colors
     static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)
@@ -85,7 +85,7 @@ struct RankTheme {
         case .platinum:
             return [Color(red: 0.15, green: 0.68, blue: 0.72), Color(red: 0.20, green: 0.82, blue: 0.88)]
         case .diamond:
-            return [Color(red: 0.20, green: 0.35, blue: 0.85), Color(red: 0.40, green: 0.60, blue: 0.95)]
+            return [Color(red: 0.31, green: 0.67, blue: 0.996), Color(red: 0.45, green: 0.75, blue: 1.0)]  // #4facfe
         case .ascendant:
             return [Color(red: 0.10, green: 0.60, blue: 0.30), Color(red: 0.35, green: 0.80, blue: 0.25)]
         case .immortal:
@@ -140,9 +140,9 @@ struct RankTheme {
 
     static func positionGlowColor(_ position: Int) -> Color {
         switch position {
-        case 1: return Color(red: 0.95, green: 0.80, blue: 0.20)
-        case 2: return Color(red: 0.75, green: 0.78, blue: 0.82)
-        case 3: return Color(red: 0.72, green: 0.50, blue: 0.25)
+        case 1: return Color(red: 0.965, green: 0.828, blue: 0.396) // #f6d365 gold glow
+        case 2: return Color(red: 0.741, green: 0.765, blue: 0.780) // #bdc3c7 silver glow
+        case 3: return Color(red: 0.804, green: 0.498, blue: 0.196) // #cd7f32 bronze glow
         default: return .clear
         }
     }
@@ -157,8 +157,12 @@ struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.03))
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            )
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppColors.glassBorder))
             .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
     }
 }

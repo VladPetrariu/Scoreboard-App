@@ -5,95 +5,83 @@ struct MemberRowView: View {
     let position: Int
     var isCurrentUser: Bool = false
 
-    private var progressInfo: RankProgressInfo {
-        RankProgressInfo.calculate(for: member.points)
+    private var rankColor: Color {
+        RankTheme.color(for: member.rank.tier)
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Left rank-tier accent line
-            RoundedRectangle(cornerRadius: 1)
-                .fill(RankTheme.gradient(for: member.rank.tier))
-                .frame(width: 3)
-                .padding(.vertical, 6)
+        HStack(spacing: 10) {
+            // Position number
+            Text("\(position)")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.gray)
+                .frame(width: 28, alignment: .center)
 
-            HStack(spacing: 12) {
-                // Position circle
-                positionCircle
+            // Info column
+            VStack(alignment: .leading, spacing: 4) {
+                // Rank badge + Name row
+                HStack(spacing: 8) {
+                    rowRankBadge
 
-                // Rank badge
-                RankBadgeView(rank: member.rank, size: .small)
-
-                // Name and stats
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Text(member.displayName)
-                            .font(.body)
-                            .fontWeight(isCurrentUser ? .bold : .medium)
-                            .lineLimit(1)
-                        if isCurrentUser {
-                            Text("(You)")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .fontWeight(.semibold)
-                        }
-                    }
-
-                    Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(isCurrentUser ? "\(member.displayName) (You)" : member.displayName)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
 
-                Spacer()
+                // Stats
+                Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.gray)
+            }
 
-                // Points
-                Text("\(member.points) pts")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            Spacer()
+
+            // Points
+            Text(formatPoints(member.points))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.white)
         }
-        .overlay(alignment: .bottom) {
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2.5)
-                        .fill(Color.white.opacity(0.10))
-                        .frame(height: 5)
-                    RoundedRectangle(cornerRadius: 2.5)
-                        .fill(RankTheme.gradient(for: member.rank.tier))
-                        .frame(width: geo.size.width * progressInfo.progress, height: 5)
-                }
-            }
-            .frame(height: 5)
-            .padding(.horizontal, 14)
-        }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(isCurrentUser ? AppColors.flame : AppColors.glassBorder, lineWidth: isCurrentUser ? 1.5 : 1)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.03))
         )
-        .shadow(color: AppColors.flame.opacity(0.10), radius: 10, x: 0, y: 3)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .overlay(alignment: .leading) {
+            // Left rank-color accent border
+            UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 8, bottomTrailingRadius: 0, topTrailingRadius: 0)
+                .fill(rankColor)
+                .frame(width: 4)
+        }
     }
 
-    private var positionCircle: some View {
-        ZStack {
-            if position <= 3 {
-                Circle()
-                    .fill(RankTheme.positionGradient(position))
-                    .frame(width: 32, height: 32)
-                    .shadow(color: RankTheme.positionGlowColor(position).opacity(0.5), radius: 6, x: 0, y: 0)
-            } else {
-                Circle()
-                    .fill(Color.white.opacity(0.10))
-                    .frame(width: 32, height: 32)
-            }
-            Text("\(position)")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(position <= 3 ? .white : .primary)
+    private var rowRankBadge: some View {
+        HStack(spacing: 3) {
+            Circle()
+                .fill(rankColor)
+                .frame(width: 6, height: 6)
+
+            Text(member.rank.tier.rawValue.uppercased())
+                .font(.system(size: 7, weight: .bold))
         }
+        .foregroundStyle(rankColor)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(rankColor.opacity(0.2))
+        .overlay(
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(rankColor.opacity(0.3), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 2))
+    }
+
+    private func formatPoints(_ points: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return (formatter.string(from: NSNumber(value: points)) ?? "\(points)") + " pts"
     }
 }

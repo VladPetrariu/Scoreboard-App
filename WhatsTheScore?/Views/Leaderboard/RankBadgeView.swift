@@ -62,7 +62,7 @@ struct RankBadgeView: View {
         .padding(.horizontal, size.padding)
         .padding(.vertical, size.padding / 2)
         .background(RankTheme.gradient(for: rank.tier))
-        .cornerRadius(size == .large ? 12 : 8)
+        .cornerRadius(size == .large ? 10 : 6)
         .shadow(color: RankTheme.color(for: rank.tier).opacity(0.5), radius: 6, x: 0, y: 2)
     }
 }

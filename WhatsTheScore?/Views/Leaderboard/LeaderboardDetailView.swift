@@ -100,7 +100,7 @@ struct LeaderboardDetailView: View {
     // MARK: - Custom Pill Tab Bar
 
     private var customTabBar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(["Rankings", "History"], id: \.self) { tab in
                 let index = tab == "Rankings" ? 0 : 1
                 let isActive = selectedTab == index
@@ -111,18 +111,19 @@ struct LeaderboardDetailView: View {
                     }
                 } label: {
                     Text(tab)
-                        .font(.subheadline)
-                        .fontWeight(isActive ? .bold : .medium)
-                        .foregroundStyle(isActive ? .white : .secondary)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(isActive ? .white : Color.gray)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                         .background(
                             isActive
                                 ? AnyView(
-                                    Capsule().fill(AppColors.flame)
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(AppColors.flame)
+                                        .shadow(color: AppColors.flame.opacity(0.4), radius: 15, x: 0, y: 0)
                                 )
                                 : AnyView(
-                                    Capsule().fill(Color.clear)
+                                    RoundedRectangle(cornerRadius: 8).fill(Color.clear)
                                 )
                         )
                 }
@@ -131,8 +132,12 @@ struct LeaderboardDetailView: View {
         }
         .padding(4)
         .background(
-            Capsule()
-                .fill(Color.white.opacity(0.08))
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
         )
     }
 
@@ -176,6 +181,8 @@ struct LeaderboardDetailView: View {
                                     position: index + 4,
                                     isCurrentUser: member.userId == authViewModel.user?.id
                                 )
+                                .opacity(1)
+                                .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.08), value: sorted.count)
                             }
                         }
                         .padding(.horizontal)
@@ -189,93 +196,198 @@ struct LeaderboardDetailView: View {
     // MARK: - Podium View
 
     private func podiumView(members: [LeaderboardMember]) -> some View {
-        HStack(alignment: .bottom, spacing: 8) {
-            // 2nd place (left)
-            if members.count > 1 {
-                podiumColumn(
-                    member: members[1],
-                    position: 2,
-                    barHeight: 70,
-                    avatarSize: 52,
-                    topPadding: 24
-                )
-            } else {
-                Spacer().frame(maxWidth: .infinity)
+        VStack(spacing: 0) {
+            // Circles and info
+            HStack(alignment: .bottom, spacing: 0) {
+                // 2nd place (left)
+                if members.count > 1 {
+                    podiumInfo(member: members[1], position: 2)
+                } else {
+                    Spacer().frame(maxWidth: .infinity)
+                }
+
+                // 1st place (center)
+                podiumInfo(member: members[0], position: 1)
+
+                // 3rd place (right)
+                if members.count > 2 {
+                    podiumInfo(member: members[2], position: 3)
+                } else {
+                    Spacer().frame(maxWidth: .infinity)
+                }
             }
 
-            // 1st place (center)
-            podiumColumn(
-                member: members[0],
-                position: 1,
-                barHeight: 90,
-                avatarSize: 64,
-                topPadding: 0
-            )
+            // Podium bars
+            HStack(alignment: .bottom, spacing: 6) {
+                // 2nd place bar — glass card style
+                if members.count > 1 {
+                    UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8)
+                        .fill(Color.white.opacity(0.03))
+                        .overlay(
+                            UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                        .frame(height: 64)
+                        .frame(maxWidth: .infinity)
+                        .shadow(color: Color(red: 0.741, green: 0.765, blue: 0.780).opacity(0.15), radius: 15, x: 0, y: 0)
+                } else {
+                    Spacer().frame(maxWidth: .infinity)
+                }
 
-            // 3rd place (right)
-            if members.count > 2 {
-                podiumColumn(
-                    member: members[2],
-                    position: 3,
-                    barHeight: 55,
-                    avatarSize: 48,
-                    topPadding: 36
-                )
-            } else {
-                Spacer().frame(maxWidth: .infinity)
+                // 1st place bar (tallest, golden gradient)
+                UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.965, green: 0.828, blue: 0.396),
+                                Color(red: 0.965, green: 0.828, blue: 0.396).opacity(0.4)
+                            ],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 96)
+                    .frame(maxWidth: .infinity)
+                    .shadow(color: Color(red: 0.965, green: 0.828, blue: 0.396).opacity(0.2), radius: 20, x: 0, y: 0)
+
+                // 3rd place bar — bronze gradient glass
+                if members.count > 2 {
+                    UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.804, green: 0.498, blue: 0.196).opacity(0.3),
+                                    Color(red: 0.804, green: 0.498, blue: 0.196).opacity(0.1)
+                                ],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                        .frame(height: 48)
+                        .frame(maxWidth: .infinity)
+                        .shadow(color: Color(red: 0.804, green: 0.498, blue: 0.196).opacity(0.15), radius: 15, x: 0, y: 0)
+                } else {
+                    Spacer().frame(maxWidth: .infinity)
+                }
             }
         }
         .padding(.top, 12)
     }
 
-    private func podiumColumn(member: LeaderboardMember, position: Int, barHeight: CGFloat, avatarSize: CGFloat, topPadding: CGFloat) -> some View {
+    private func podiumInfo(member: LeaderboardMember, position: Int) -> some View {
         let isCurrentUser = member.userId == authViewModel.user?.id
+        let circleSize: CGFloat = position == 1 ? 80 : 64
 
-        return VStack(spacing: 6) {
-            Spacer().frame(height: topPadding)
+        return VStack(spacing: 5) {
+            if position != 1 {
+                Spacer().frame(height: 30)
+            }
 
-            // Avatar circle with glow
+            // Circle with star/number
             ZStack {
-                Circle()
-                    .fill(RankTheme.positionGradient(position))
-                    .frame(width: avatarSize, height: avatarSize)
-                    .shadow(color: RankTheme.positionGlowColor(position).opacity(0.6), radius: 10, x: 0, y: 0)
-
-                // Position indicator or crown
                 if position == 1 {
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: avatarSize * 0.35, weight: .bold))
-                        .foregroundStyle(.white)
+                    // Star on top of circle
+                    VStack(spacing: -8) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(Color(red: 0.965, green: 0.828, blue: 0.396))
+                            .shadow(color: Color(red: 0.965, green: 0.828, blue: 0.396).opacity(0.5), radius: 6)
+                            .zIndex(1)
+
+                        Circle()
+                            .fill(Color(red: 0.965, green: 0.828, blue: 0.396))
+                            .frame(width: circleSize, height: circleSize)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color(red: 0.965, green: 0.828, blue: 0.396).opacity(0.5), lineWidth: 4)
+                            )
+                            .shadow(color: Color(red: 0.965, green: 0.828, blue: 0.396).opacity(0.5), radius: 20, x: 0, y: 0)
+                            .overlay(
+                                Text("1")
+                                    .font(.system(size: 28, weight: .black))
+                                    .foregroundStyle(Color(red: 0.059, green: 0.090, blue: 0.165))
+                            )
+                    }
+                } else if position == 2 {
+                    // 2nd place: gray bordered circle
+                    Circle()
+                        .fill(Color.white.opacity(0.03))
+                        .frame(width: circleSize, height: circleSize)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.gray, lineWidth: 2)
+                        )
+                        .overlay(
+                            Text("2")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundStyle(.white)
+                        )
                 } else {
-                    Text("\(position)")
-                        .font(.system(size: avatarSize * 0.35, weight: .bold))
-                        .foregroundStyle(.white)
+                    // 3rd place: bronze bordered circle
+                    Circle()
+                        .fill(Color.white.opacity(0.03))
+                        .frame(width: circleSize, height: circleSize)
+                        .overlay(
+                            Circle()
+                                .stroke(Color(red: 0.804, green: 0.498, blue: 0.196).opacity(0.4), lineWidth: 2)
+                        )
+                        .overlay(
+                            Text("3")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundStyle(Color(red: 0.804, green: 0.498, blue: 0.196))
+                        )
                 }
             }
 
             // Name
             Text(isCurrentUser ? "\(member.displayName) (You)" : member.displayName)
-                .font(.caption)
-                .fontWeight(.semibold)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.white)
                 .lineLimit(1)
                 .truncationMode(.tail)
+                .frame(width: 96)
 
-            // Points
-            Text("\(member.points) pts")
-                .font(.caption2)
-                .fontWeight(.bold)
+            // Points — all use brand blue
+            Text(formatPoints(member.points))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(AppColors.flame)
 
-            // Rank badge
-            RankBadgeView(rank: member.rank, size: .small)
+            // Rank badge (podium style — rounded pill)
+            podiumRankBadge(rank: member.rank)
 
-            // Podium bar
-            RoundedRectangle(cornerRadius: 10)
-                .fill(RankTheme.positionGradient(position))
-                .frame(height: barHeight)
-                .shadow(color: RankTheme.positionGlowColor(position).opacity(0.3), radius: 6, x: 0, y: 2)
+            if position == 1 {
+                Spacer().frame(height: 8)
+            }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func podiumRankBadge(rank: Rank) -> some View {
+        let color = RankTheme.color(for: rank.tier)
+        return HStack(spacing: 3) {
+            Image(systemName: rank.tier.systemIcon)
+                .font(.system(size: 6))
+            Text(rank.tier.rawValue.uppercased())
+                .font(.system(size: 7, weight: .bold))
+                .tracking(0.5)
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.2))
+        .overlay(
+            Capsule()
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        )
+        .clipShape(Capsule())
+    }
+
+    private func formatPoints(_ points: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return (formatter.string(from: NSNumber(value: points)) ?? "\(points)") + " pts"
     }
 
     // MARK: - Match History
