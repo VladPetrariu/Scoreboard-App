@@ -21,13 +21,21 @@ struct HomeView: View {
 
     private var emptyState: some View {
         VStack(spacing: 20) {
-            Image(systemName: "trophy.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.primary)
+            // Trophy in gradient circle
+            ZStack {
+                Circle()
+                    .fill(AppColors.heroGradient)
+                    .frame(width: 80, height: 80)
+                    .shadow(color: AppColors.flame.opacity(0.4), radius: 12, x: 0, y: 4)
+
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.white)
+            }
 
             Text("No Leaderboards Yet")
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
 
             Text("Create a leaderboard to start competing\nwith your friends, or join one with an invite code.")
                 .font(.body)
@@ -47,12 +55,12 @@ struct HomeView: View {
                 } label: {
                     Label("Join", systemImage: "person.badge.plus")
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(AppColors.flame)
                         .padding(.vertical, 14)
                         .padding(.horizontal, 24)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.separator), lineWidth: 1.5)
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(AppColors.flame, lineWidth: 1.5)
                         )
                 }
             }
@@ -76,50 +84,84 @@ struct HomeView: View {
     }
 
     private func leaderboardCard(_ leaderboard: Leaderboard) -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(leaderboard.name)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+        HStack(spacing: 0) {
+            // Left accent strip
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(
+                    currentUserRankGradient(in: leaderboard)
+                )
+                .frame(width: 3)
+                .padding(.vertical, 8)
 
-                HStack(spacing: 8) {
-                    Label("\(leaderboard.members.count) members", systemImage: "person.2")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(leaderboard.name)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
 
-                    if !leaderboard.gameTypes.isEmpty {
-                        Text("\u{00B7}")
-                            .foregroundStyle(.secondary)
-                        Text(leaderboard.gameTypes.prefix(2).joined(separator: ", "))
+                    HStack(spacing: 8) {
+                        Label("\(leaderboard.members.count)", systemImage: "person.2")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(1)
+
+                        if !leaderboard.gameTypes.isEmpty {
+                            Text(leaderboard.gameTypes.prefix(2).joined(separator: ", "))
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(AppColors.flame.opacity(0.8))
+                                .cornerRadius(6)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    if let userId = authViewModel.user?.id,
+                       let member = leaderboard.members.first(where: { $0.userId == userId }) {
+                        let sortedMembers = leaderboard.sortedMembers
+                        if let pos = sortedMembers.firstIndex(where: { $0.userId == userId }) {
+                            HStack(spacing: 4) {
+                                // Position circle
+                                ZStack {
+                                    Circle()
+                                        .fill(RankTheme.positionGradient(pos + 1))
+                                        .frame(width: 18, height: 18)
+                                    Text("\(pos + 1)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(pos < 3 ? .white : .primary)
+                                }
+
+                                Text("of \(sortedMembers.count)")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(RankTheme.color(for: member.rank.tier))
+                            }
+                        }
                     }
                 }
+
+                Spacer()
 
                 if let userId = authViewModel.user?.id,
                    let member = leaderboard.members.first(where: { $0.userId == userId }) {
-                    let sortedMembers = leaderboard.sortedMembers
-                    if let pos = sortedMembers.firstIndex(where: { $0.userId == userId }) {
-                        Text("#\(pos + 1) of \(sortedMembers.count)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(RankTheme.color(for: member.rank.tier))
-                    }
+                    RankBadgeView(rank: member.rank, size: .small)
                 }
             }
-
-            Spacer()
-
-            if let userId = authViewModel.user?.id,
-               let member = leaderboard.members.first(where: { $0.userId == userId }) {
-                RankBadgeView(rank: member.rank, size: .small)
-            }
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 14)
         }
-        .cardStyle()
+        .background(AppColors.cardBackground)
+        .cornerRadius(20)
+        .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
+    }
+
+    private func currentUserRankGradient(in leaderboard: Leaderboard) -> LinearGradient {
+        if let userId = authViewModel.user?.id,
+           let member = leaderboard.members.first(where: { $0.userId == userId }) {
+            return RankTheme.gradient(for: member.rank.tier)
+        }
+        return AppColors.cardAccentGradient
     }
 }

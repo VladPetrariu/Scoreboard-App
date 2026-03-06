@@ -114,7 +114,7 @@ struct CreateLeaderboardView: View {
 
             ZStack {
                 Circle()
-                    .fill(Color(.darkGray))
+                    .fill(AppColors.heroGradient)
                     .frame(width: 80, height: 80)
 
                 Image(systemName: "checkmark")

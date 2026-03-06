@@ -49,7 +49,7 @@ struct CreateMatchView: View {
                 VStack(spacing: 4) {
                     ZStack {
                         Circle()
-                            .fill(s <= step ? AnyShapeStyle(Color(.darkGray)) : AnyShapeStyle(Color(.systemGray5)))
+                            .fill(s <= step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color(.systemGray5)))
                             .frame(width: 28, height: 28)
 
                         if s < step {
@@ -72,7 +72,7 @@ struct CreateMatchView: View {
                 // Connecting line
                 if s < 4 {
                     Rectangle()
-                        .fill(s < step ? AnyShapeStyle(Color(.darkGray)) : AnyShapeStyle(Color(.systemGray5)))
+                        .fill(s < step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color(.systemGray5)))
                         .frame(height: 2)
                         .padding(.bottom, 18) // align with circle center
                 }

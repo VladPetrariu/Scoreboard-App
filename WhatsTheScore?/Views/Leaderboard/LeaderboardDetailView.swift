@@ -17,7 +17,7 @@ struct LeaderboardDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Custom tab bar
+            // Custom pill tab bar
             customTabBar
                 .padding(.horizontal)
                 .padding(.top, 12)
@@ -97,10 +97,10 @@ struct LeaderboardDetailView: View {
         }
     }
 
-    // MARK: - Custom Tab Bar
+    // MARK: - Custom Pill Tab Bar
 
     private var customTabBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(["Rankings", "History"], id: \.self) { tab in
                 let index = tab == "Rankings" ? 0 : 1
                 let isActive = selectedTab == index
@@ -110,30 +110,28 @@ struct LeaderboardDetailView: View {
                         selectedTab = index
                     }
                 } label: {
-                    VStack(spacing: 6) {
-                        Text(tab)
-                            .font(.subheadline)
-                            .fontWeight(isActive ? .bold : .medium)
-                            .foregroundStyle(isActive ? .primary : .secondary)
-
-                        // Underline indicator
-                        if isActive {
-                            Color(.label)
-                                .frame(height: 3)
-                                .cornerRadius(1.5)
-                        } else {
-                            Color.clear
-                                .frame(height: 3)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                    Text(tab)
+                        .font(.subheadline)
+                        .fontWeight(isActive ? .bold : .medium)
+                        .foregroundStyle(isActive ? .white : .secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            isActive
+                                ? AnyView(
+                                    Capsule().fill(AppColors.flame)
+                                )
+                                : AnyView(
+                                    Capsule().fill(Color.clear)
+                                )
+                        )
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 4)
+        .padding(4)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            Capsule()
                 .fill(Color(.secondarySystemBackground))
         )
     }
@@ -148,7 +146,7 @@ struct LeaderboardDetailView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3")
                         .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppColors.flame.opacity(0.6))
                     Text("No Members")
                         .font(.title3)
                         .fontWeight(.semibold)
@@ -159,33 +157,125 @@ struct LeaderboardDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 80)
             } else {
-                LazyVStack(spacing: 10) {
-                    // Top 3 highlight cards
+                VStack(spacing: 16) {
+                    // Podium for top 3
                     let topMembers = Array(sorted.prefix(3))
-                    ForEach(Array(topMembers.enumerated()), id: \.element.id) { index, member in
-                        TopMemberCard(
-                            member: member,
-                            position: index + 1,
-                            isCurrentUser: member.userId == authViewModel.user?.id
-                        )
+                    if !topMembers.isEmpty {
+                        podiumView(members: topMembers)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
                     }
 
                     // Remaining members
                     if sorted.count > 3 {
-                        let remaining = Array(sorted.dropFirst(3))
-                        ForEach(Array(remaining.enumerated()), id: \.element.id) { index, member in
-                            MemberRowView(
-                                member: member,
-                                position: index + 4,
-                                isCurrentUser: member.userId == authViewModel.user?.id
-                            )
+                        LazyVStack(spacing: 10) {
+                            let remaining = Array(sorted.dropFirst(3))
+                            ForEach(Array(remaining.enumerated()), id: \.element.id) { index, member in
+                                MemberRowView(
+                                    member: member,
+                                    position: index + 4,
+                                    isCurrentUser: member.userId == authViewModel.user?.id
+                                )
+                            }
                         }
+                        .padding(.horizontal)
                     }
                 }
-                .padding(.horizontal)
                 .padding(.bottom, 20)
             }
         }
+    }
+
+    // MARK: - Podium View
+
+    private func podiumView(members: [LeaderboardMember]) -> some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            // 2nd place (left)
+            if members.count > 1 {
+                podiumColumn(
+                    member: members[1],
+                    position: 2,
+                    barHeight: 70,
+                    avatarSize: 52,
+                    topPadding: 24
+                )
+            } else {
+                Spacer().frame(maxWidth: .infinity)
+            }
+
+            // 1st place (center)
+            podiumColumn(
+                member: members[0],
+                position: 1,
+                barHeight: 90,
+                avatarSize: 64,
+                topPadding: 0
+            )
+
+            // 3rd place (right)
+            if members.count > 2 {
+                podiumColumn(
+                    member: members[2],
+                    position: 3,
+                    barHeight: 55,
+                    avatarSize: 48,
+                    topPadding: 36
+                )
+            } else {
+                Spacer().frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.top, 12)
+    }
+
+    private func podiumColumn(member: LeaderboardMember, position: Int, barHeight: CGFloat, avatarSize: CGFloat, topPadding: CGFloat) -> some View {
+        let isCurrentUser = member.userId == authViewModel.user?.id
+
+        return VStack(spacing: 6) {
+            Spacer().frame(height: topPadding)
+
+            // Avatar circle with glow
+            ZStack {
+                Circle()
+                    .fill(RankTheme.positionGradient(position))
+                    .frame(width: avatarSize, height: avatarSize)
+                    .shadow(color: RankTheme.positionGlowColor(position).opacity(0.6), radius: 10, x: 0, y: 0)
+
+                // Position indicator or crown
+                if position == 1 {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: avatarSize * 0.35, weight: .bold))
+                        .foregroundStyle(.white)
+                } else {
+                    Text("\(position)")
+                        .font(.system(size: avatarSize * 0.35, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+
+            // Name
+            Text(isCurrentUser ? "\(member.displayName) (You)" : member.displayName)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            // Points
+            Text("\(member.points) pts")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundStyle(AppColors.flame)
+
+            // Rank badge
+            RankBadgeView(rank: member.rank, size: .small)
+
+            // Podium bar
+            RoundedRectangle(cornerRadius: 10)
+                .fill(RankTheme.positionGradient(position))
+                .frame(height: barHeight)
+                .shadow(color: RankTheme.positionGlowColor(position).opacity(0.3), radius: 6, x: 0, y: 2)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Match History
@@ -197,7 +287,7 @@ struct LeaderboardDetailView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "gamecontroller")
                             .font(.system(size: 40))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AppColors.flame.opacity(0.6))
                         Text("No Games Yet")
                             .font(.title3)
                             .fontWeight(.semibold)
@@ -232,90 +322,6 @@ struct LeaderboardDetailView: View {
     }
 }
 
-// MARK: - Top Member Card
-
-private struct TopMemberCard: View {
-    let member: LeaderboardMember
-    let position: Int
-    var isCurrentUser: Bool = false
-
-    private var progressInfo: RankProgressInfo {
-        RankProgressInfo.calculate(for: member.points)
-    }
-
-    private var positionEmoji: String {
-        switch position {
-        case 1: return "\u{1F947}"
-        case 2: return "\u{1F948}"
-        case 3: return "\u{1F949}"
-        default: return ""
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                // Position emoji
-                Text(positionEmoji)
-                    .font(.system(size: 28))
-
-                // Name + stats
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 4) {
-                        Text(member.displayName)
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                        if isCurrentUser {
-                            Text("(You)")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .fontWeight(.semibold)
-                        }
-                    }
-                    Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 4) {
-                    RankBadgeView(rank: member.rank, size: .small)
-                    Text("\(member.points) pts")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                }
-            }
-            .padding(14)
-
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color(.systemGray5))
-                        .frame(height: 4)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(RankTheme.gradient(for: member.rank.tier))
-                        .frame(width: geo.size.width * progressInfo.progress, height: 4)
-                }
-            }
-            .frame(height: 4)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 10)
-        }
-        .background(Color(.systemBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(
-                    isCurrentUser ? Color(.label) : Color(.separator),
-                    lineWidth: isCurrentUser ? 1.5 : 1
-                )
-        )
-        .cornerRadius(16)
-    }
-}
-
 // MARK: - Match Row
 
 struct MatchRowView: View {
@@ -330,7 +336,7 @@ struct MatchRowView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color(.darkGray))
+                    .background(AppColors.actionGradient)
                     .cornerRadius(8)
 
                 Spacer()
@@ -342,20 +348,23 @@ struct MatchRowView: View {
 
             ForEach(match.sortedPlayers) { player in
                 HStack {
-                    Text(placementEmoji(player.placement))
+                    Text(placementText(player.placement))
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundStyle(AppColors.flame)
                     Text(player.displayName)
                         .font(.subheadline)
                     Spacer()
                     Text(player.pointsEarned >= 0 ? "+\(player.pointsEarned)" : "\(player.pointsEarned)")
                         .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .fontWeight(.bold)
                         .foregroundStyle(player.pointsEarned >= 0 ? AppColors.positive : AppColors.negative)
                 }
             }
         }
     }
 
-    private func placementEmoji(_ placement: Int) -> String {
+    private func placementText(_ placement: Int) -> String {
         switch placement {
         case 1: return "1st"
         case 2: return "2nd"

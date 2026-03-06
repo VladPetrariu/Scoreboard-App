@@ -73,22 +73,31 @@ struct MainTabView: View {
         .padding(.top, 12)
         .padding(.bottom, 8)
         .background(
-            Color(.systemBackground)
-                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: -2)
+            AppColors.cardBackground
+                .shadow(color: Color.orange.opacity(0.08), radius: 12, x: 0, y: -4)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
 
     private func tabBarButton(icon: String, activeIcon: String, tab: Int) -> some View {
-        Button {
+        let isActive = selectedTab == tab
+
+        return Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 selectedTab = tab
             }
         } label: {
-            Image(systemName: selectedTab == tab ? activeIcon : icon)
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(selectedTab == tab ? Color(.label) : .secondary.opacity(0.5))
-                .frame(maxWidth: .infinity, minHeight: 32)
+            VStack(spacing: 6) {
+                Image(systemName: isActive ? activeIcon : icon)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(isActive ? AppColors.flame : .secondary.opacity(0.4))
+
+                // Pill indicator
+                Capsule()
+                    .fill(isActive ? AppColors.flame : Color.clear)
+                    .frame(width: 20, height: 4)
+            }
+            .frame(maxWidth: .infinity, minHeight: 32)
         }
         .buttonStyle(.plain)
     }
@@ -100,9 +109,17 @@ struct MainTabView: View {
             VStack(spacing: 20) {
                 Spacer().frame(height: 40)
 
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(.primary)
+                // Gradient-filled trophy circle
+                ZStack {
+                    Circle()
+                        .fill(AppColors.heroGradient)
+                        .frame(width: 80, height: 80)
+                        .shadow(color: AppColors.flame.opacity(0.4), radius: 12, x: 0, y: 4)
+
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.white)
+                }
 
                 Text("Create or Join")
                     .font(.title2)
@@ -119,26 +136,35 @@ struct MainTabView: View {
                 Button {
                     showCreateSheet = true
                 } label: {
-                    HStack(spacing: 16) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
+                    HStack(spacing: 0) {
+                        // Accent strip
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(AppColors.cardAccentGradient)
+                            .frame(width: 4)
+                            .padding(.vertical, 10)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Create Leaderboard")
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                            Text("Start a new competition with friends")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        HStack(spacing: 16) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(AppColors.flame)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Create Leaderboard")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("Start a new competition with friends")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
                         }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 16)
                     }
-                    .cardStyle()
+                    .background(AppColors.cardBackground)
+                    .cornerRadius(20)
+                    .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
 
@@ -146,26 +172,35 @@ struct MainTabView: View {
                 Button {
                     showJoinSheet = true
                 } label: {
-                    HStack(spacing: 16) {
-                        Image(systemName: "person.badge.plus")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
+                    HStack(spacing: 0) {
+                        // Accent strip
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(AppColors.cardAccentGradient)
+                            .frame(width: 4)
+                            .padding(.vertical, 10)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Join Leaderboard")
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                            Text("Enter an invite code to join")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        HStack(spacing: 16) {
+                            Image(systemName: "person.badge.plus")
+                                .font(.title2)
+                                .foregroundStyle(AppColors.amber)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Join Leaderboard")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("Enter an invite code to join")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
                         }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 16)
                     }
-                    .cardStyle()
+                    .background(AppColors.cardBackground)
+                    .cornerRadius(20)
+                    .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
             }

@@ -1,46 +1,62 @@
 import SwiftUI
 
-// MARK: - App Color Palette
+// MARK: - App Color Palette (Orange & Gold Vibrant)
 
 struct AppColors {
-    static let primary = Color(.label)                                      // Black (light) / White (dark)
-    static let highlight = Color(.secondaryLabel)                           // Medium grey
-    static let accent = Color(.secondaryLabel)                              // Medium grey
+    // Primary palette
+    static let flame = Color(red: 1.0, green: 0.42, blue: 0.21)       // #FF6B35 — Deep Orange
+    static let amber = Color(red: 1.0, green: 0.65, blue: 0.15)       // #FFA726 — Golden Amber
+    static let sunlight = Color(red: 1.0, green: 0.84, blue: 0.31)    // #FFD54F — Warm Gold
 
-    // Dark color for emphasis (tab bar active, headings)
-    static let navy = Color(.label)
+    // Semantic aliases
+    static let primary = flame
+    static let accent = amber
+    static let highlight = sunlight
 
-    // Derived semantic colors
-    static let pageBackground = Color(.systemGroupedBackground)
+    // Adaptive backgrounds
+    static let warmWhiteLight = Color(red: 1.0, green: 0.97, blue: 0.94)    // #FFF8F0
+    static let deepCharcoalDark = Color(red: 0.10, green: 0.10, blue: 0.18) // #1A1A2E
+    static let darkSurface = Color(red: 0.145, green: 0.145, blue: 0.25)    // #252540
+
+    static var pageBackground: Color {
+        Color(.systemGroupedBackground)
+    }
+
+    static var cardBackground: Color {
+        Color(.systemBackground)
+    }
+
+    // Keep semantic colors
+    static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)
+    static let negative = Color(red: 0.82, green: 0.0, blue: 0.0)
+
     static let subtleBorder = Color(.separator)
     static let sectionHeader = Color(.secondaryLabel)
-    static let positive = Color(red: 0.20, green: 0.72, blue: 0.40)        // Keep green for wins
-    static let negative = Color(red: 0.82, green: 0.0, blue: 0.0)          // Keep red for losses
 
-    // Gradients — simplified to solid greys
-    static let trophyGradient = LinearGradient(
-        colors: [Color(.label), Color(.secondaryLabel)],
-        startPoint: .top, endPoint: .bottom
-    )
-
+    // Gradients
     static let heroGradient = LinearGradient(
-        colors: [Color(.systemBackground), Color(.secondarySystemBackground)],
-        startPoint: .top, endPoint: .bottom
+        colors: [flame, amber],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
 
     static let actionGradient = LinearGradient(
-        colors: [Color(.darkGray), Color(.darkGray)],
+        colors: [flame, amber],
         startPoint: .leading, endPoint: .trailing
     )
 
     static let warmGradient = LinearGradient(
-        colors: [Color(.darkGray), Color(.gray)],
+        colors: [amber, sunlight],
         startPoint: .leading, endPoint: .trailing
     )
 
+    static let trophyGradient = LinearGradient(
+        colors: [flame, amber],
+        startPoint: .top, endPoint: .bottom
+    )
+
     static let cardAccentGradient = LinearGradient(
-        colors: [Color(.separator), Color(.separator)],
-        startPoint: .leading, endPoint: .trailing
+        colors: [sunlight, flame],
+        startPoint: .top, endPoint: .bottom
     )
 }
 
@@ -115,6 +131,15 @@ struct RankTheme {
             return LinearGradient(colors: [.secondary], startPoint: .top, endPoint: .bottom)
         }
     }
+
+    static func positionGlowColor(_ position: Int) -> Color {
+        switch position {
+        case 1: return Color(red: 0.95, green: 0.80, blue: 0.20)
+        case 2: return Color(red: 0.75, green: 0.78, blue: 0.82)
+        case 3: return Color(red: 0.72, green: 0.50, blue: 0.25)
+        default: return .clear
+        }
+    }
 }
 
 // MARK: - Card Style Modifier
@@ -126,12 +151,9 @@ struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(Color(.systemBackground))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(AppColors.subtleBorder, lineWidth: 1)
-            )
-            .cornerRadius(16)
+            .background(AppColors.cardBackground)
+            .cornerRadius(20)
+            .shadow(color: Color.orange.opacity(0.12), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -189,10 +211,29 @@ struct GradientButtonStyle: ButtonStyle {
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .padding(.vertical, 14)
             .padding(.horizontal, fullWidth ? 0 : 24)
-            .background(Color(.darkGray))
-            .cornerRadius(12)
+            .background(AppColors.actionGradient)
+            .cornerRadius(14)
+            .shadow(color: AppColors.flame.opacity(0.3), radius: 8, x: 0, y: 4)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Glow Modifier
+
+struct GlowModifier: ViewModifier {
+    let color: Color
+    var radius: CGFloat = 8
+
+    func body(content: Content) -> some View {
+        content
+            .shadow(color: color.opacity(0.5), radius: radius, x: 0, y: 0)
+    }
+}
+
+extension View {
+    func glowEffect(color: Color, radius: CGFloat = 8) -> some View {
+        modifier(GlowModifier(color: color, radius: radius))
     }
 }
 

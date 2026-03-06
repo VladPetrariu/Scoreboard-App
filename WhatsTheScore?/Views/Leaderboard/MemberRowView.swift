@@ -10,65 +10,74 @@ struct MemberRowView: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Position circle
-            positionCircle
+        HStack(spacing: 0) {
+            // Left rank-tier accent line
+            RoundedRectangle(cornerRadius: 1)
+                .fill(RankTheme.gradient(for: member.rank.tier))
+                .frame(width: 3)
+                .padding(.vertical, 6)
 
-            // Rank badge
-            RankBadgeView(rank: member.rank, size: .small)
+            HStack(spacing: 12) {
+                // Position circle
+                positionCircle
 
-            // Name and stats
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(member.displayName)
-                        .font(.body)
-                        .fontWeight(isCurrentUser ? .bold : .medium)
-                        .lineLimit(1)
-                    if isCurrentUser {
-                        Text("(You)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .fontWeight(.semibold)
+                // Rank badge
+                RankBadgeView(rank: member.rank, size: .small)
+
+                // Name and stats
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(member.displayName)
+                            .font(.body)
+                            .fontWeight(isCurrentUser ? .bold : .medium)
+                            .lineLimit(1)
+                        if isCurrentUser {
+                            Text("(You)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .fontWeight(.semibold)
+                        }
                     }
+
+                    Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
-                Text("\(member.gamesPlayed) games \u{00B7} \(member.wins) wins")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Spacer()
+
+                // Points
+                Text("\(member.points) pts")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
             }
-
-            Spacer()
-
-            // Points
-            Text("\(member.points) pts")
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundStyle(.primary)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
         .overlay(alignment: .bottom) {
             // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
+                    RoundedRectangle(cornerRadius: 2.5)
                         .fill(Color(.systemGray5))
-                        .frame(height: 4)
-                    RoundedRectangle(cornerRadius: 2)
+                        .frame(height: 5)
+                    RoundedRectangle(cornerRadius: 2.5)
                         .fill(RankTheme.gradient(for: member.rank.tier))
-                        .frame(width: geo.size.width * progressInfo.progress, height: 4)
+                        .frame(width: geo.size.width * progressInfo.progress, height: 5)
                 }
             }
-            .frame(height: 4)
+            .frame(height: 5)
             .padding(.horizontal, 14)
         }
-        .background(Color(.systemBackground))
+        .background(AppColors.cardBackground)
+        .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isCurrentUser ? Color(.label) : Color(.separator), lineWidth: isCurrentUser ? 1.5 : 1)
+                .stroke(isCurrentUser ? AppColors.flame : Color.clear, lineWidth: isCurrentUser ? 1.5 : 0)
         )
-        .cornerRadius(16)
+        .shadow(color: Color.orange.opacity(0.12), radius: 10, x: 0, y: 3)
     }
 
     private var positionCircle: some View {
@@ -77,6 +86,7 @@ struct MemberRowView: View {
                 Circle()
                     .fill(RankTheme.positionGradient(position))
                     .frame(width: 32, height: 32)
+                    .shadow(color: RankTheme.positionGlowColor(position).opacity(0.5), radius: 6, x: 0, y: 0)
             } else {
                 Circle()
                     .fill(Color(.systemGray5))

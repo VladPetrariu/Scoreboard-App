@@ -27,7 +27,7 @@ struct WhatsTheScore_App: App {
                 }
             }
             .environmentObject(authViewModel)
-            .tint(Color(.label))
+            .tint(AppColors.flame)
         }
     }
 }
