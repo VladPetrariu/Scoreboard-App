@@ -31,15 +31,11 @@ class MatchService {
 
         try matchRef.setData(from: match)
 
-        // Update each player's points in the leaderboard
-        for player in players {
-            try await leaderboardService.updateMemberPoints(
-                leaderboardId: leaderboardId,
-                userId: player.userId,
-                pointsDelta: player.pointsEarned,
-                isWin: player.placement == 1
-            )
+        // Batch-update all players' points in a single read-modify-write
+        let updates = players.map { player in
+            (userId: player.userId, pointsDelta: player.pointsEarned, isWin: player.placement == 1)
         }
+        try await leaderboardService.updateMembersPoints(leaderboardId: leaderboardId, playerUpdates: updates)
 
         return match
     }
@@ -63,9 +59,21 @@ class MatchService {
         return snapshot.documents.compactMap { try? $0.data(as: Match.self) }
     }
 
+    func fetchMoreMatches(leaderboardId: String, after lastDocument: DocumentSnapshot, limit: Int = 10) async throws -> ([Match], DocumentSnapshot?) {
+        let snapshot = try await db.collection("leaderboards").document(leaderboardId)
+            .collection("matches")
+            .order(by: "createdAt", descending: true)
+            .start(afterDocument: lastDocument)
+            .limit(to: limit)
+            .getDocuments()
+
+        let matches = snapshot.documents.compactMap { try? $0.data(as: Match.self) }
+        return (matches, snapshot.documents.last)
+    }
+
     // MARK: - Listener
 
-    func listenToMatches(leaderboardId: String, limit: Int = 50, onChange: @escaping ([Match]) -> Void) -> ListenerRegistration {
+    func listenToMatches(leaderboardId: String, limit: Int = 15, onChange: @escaping ([Match], DocumentSnapshot?) -> Void) -> ListenerRegistration {
         return db.collection("leaderboards").document(leaderboardId)
             .collection("matches")
             .order(by: "createdAt", descending: true)
@@ -73,7 +81,7 @@ class MatchService {
             .addSnapshotListener { snapshot, error in
                 guard let snapshot = snapshot else { return }
                 let matches = snapshot.documents.compactMap { try? $0.data(as: Match.self) }
-                onChange(matches)
+                onChange(matches, snapshot.documents.last)
             }
     }
 }

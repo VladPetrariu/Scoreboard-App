@@ -90,9 +90,7 @@ struct MainTabView: View {
         let isActive = selectedTab == tab
 
         return Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                selectedTab = tab
-            }
+            selectedTab = tab
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: isActive ? activeIcon : icon)
@@ -110,7 +108,8 @@ struct MainTabView: View {
                         .frame(width: 20, height: 4)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 32)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

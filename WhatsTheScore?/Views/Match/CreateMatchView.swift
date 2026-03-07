@@ -15,7 +15,6 @@ struct CreateMatchView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Step indicator
                 stepIndicator
                     .padding(.horizontal)
                     .padding(.top, 12)
@@ -29,9 +28,11 @@ struct CreateMatchView: View {
                 default: EmptyView()
                 }
             }
-            .themedBackground()
+            .background(AppColors.pageBackground.ignoresSafeArea())
             .navigationTitle("New Game")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(AppColors.pageBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -45,7 +46,6 @@ struct CreateMatchView: View {
     private var stepIndicator: some View {
         HStack(spacing: 0) {
             ForEach(Array(1...4), id: \.self) { s in
-                // Circle
                 VStack(spacing: 4) {
                     ZStack {
                         Circle()
@@ -59,22 +59,21 @@ struct CreateMatchView: View {
                         } else {
                             Text("\(s)")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(s == step ? .white : .secondary)
+                                .foregroundStyle(s == step ? .white : Color.gray)
                         }
                     }
 
                     Text(stepTitles[s - 1])
                         .font(.caption2)
                         .fontWeight(s == step ? .semibold : .regular)
-                        .foregroundStyle(s <= step ? .primary : .secondary)
+                        .foregroundStyle(s <= step ? .white : Color.gray)
                 }
 
-                // Connecting line
                 if s < 4 {
                     Rectangle()
                         .fill(s < step ? AnyShapeStyle(AppColors.flame) : AnyShapeStyle(Color.white.opacity(0.10)))
                         .frame(height: 2)
-                        .padding(.bottom, 18) // align with circle center
+                        .padding(.bottom, 18)
                 }
             }
         }
@@ -83,45 +82,106 @@ struct CreateMatchView: View {
     // MARK: - Step 1: Game Selection
 
     private var gameSelectionStep: some View {
-        VStack {
-            List {
-                ForEach(viewModel.gameList, id: \.self) { game in
-                    Button {
-                        viewModel.selectedGameType = game
-                        withAnimation { step = 2 }
-                    } label: {
-                        HStack {
-                            Text(game)
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if viewModel.selectedGameType == game {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.primary)
+        ScrollView {
+            VStack(spacing: 20) {
+                VStack(spacing: 8) {
+                    Image(systemName: "gamecontroller.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppColors.flame)
+
+                    Text("Select a Game")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    Text("Choose the game you're playing.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.gray)
+                }
+                .padding(.top, 16)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(viewModel.gameList.enumerated()), id: \.element) { index, game in
+                        Button {
+                            viewModel.selectedGameType = game
+                            withAnimation { step = 2 }
+                        } label: {
+                            HStack {
+                                Text(game)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(.white)
+
+                                Spacer()
+
+                                if viewModel.selectedGameType == game {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(AppColors.flame)
+                                }
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.gray)
                             }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+                            .padding(16)
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                viewModel.deleteGame(at: IndexSet(integer: index))
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+
+                        if index < viewModel.gameList.count - 1 {
+                            Divider()
+                                .background(Color.white.opacity(0.06))
                         }
                     }
                 }
-                .onDelete { offsets in
-                    viewModel.deleteGame(at: offsets)
-                }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.horizontal)
 
-                Section {
-                    HStack {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("CUSTOM GAME")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.5)
+                        .foregroundStyle(Color.gray)
+                        .padding(.horizontal)
+
+                    HStack(spacing: 10) {
                         TextField("Add custom game...", text: $viewModel.customGameName)
-                        Button("Add") {
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white)
+
+                        Button {
                             viewModel.addCustomGame()
+                        } label: {
+                            Text("Add")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(AppColors.flame)
                         }
                         .disabled(viewModel.customGameName.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                } header: {
-                    Text("Custom Game")
-                        .sectionHeaderStyle()
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.03))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .padding(.bottom, 24)
         }
     }
 
@@ -130,48 +190,69 @@ struct CreateMatchView: View {
     private var playerSelectionStep: some View {
         VStack {
             ScrollView {
-                VStack(spacing: 10) {
-                    ForEach(viewModel.leaderboard.members) { member in
-                        Button {
-                            togglePlayer(member)
-                        } label: {
-                            let isSelected = viewModel.selectedPlayers.contains(where: { $0.userId == member.userId })
-                            HStack {
-                                Text(member.displayName)
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                if isSelected {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.primary)
-                                        .font(.title3)
-                                } else {
-                                    Image(systemName: "circle")
-                                        .foregroundStyle(.secondary)
-                                        .font(.title3)
-                                }
-                            }
-                            .padding(16)
-                            .background(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(isSelected ? Color(.label) : Color(.separator), lineWidth: isSelected ? 1.5 : 1)
-                            )
-                            .cornerRadius(16)
-                        }
-                        .buttonStyle(.plain)
-                    }
+                VStack(spacing: 20) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "person.3.fill")
+                            .font(.system(size: 36))
+                            .foregroundStyle(AppColors.flame)
 
-                    Text("\(viewModel.selectedPlayers.count) of 2-4 players selected")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 4)
+                        Text("Select Players")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.white)
+
+                        Text("\(viewModel.selectedPlayers.count) of 2–4 players selected")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.gray)
+                    }
+                    .padding(.top, 16)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.leaderboard.members.enumerated()), id: \.element.userId) { index, member in
+                            let isSelected = viewModel.selectedPlayers.contains(where: { $0.userId == member.userId })
+
+                            Button {
+                                togglePlayer(member)
+                            } label: {
+                                HStack {
+                                    Text(member.displayName)
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(.white)
+
+                                    Spacer()
+
+                                    if isSelected {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(AppColors.flame)
+                                    } else {
+                                        Image(systemName: "circle")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(Color.gray)
+                                    }
+                                }
+                                .padding(16)
+                            }
+
+                            if index < viewModel.leaderboard.members.count - 1 {
+                                Divider()
+                                    .background(Color.white.opacity(0.06))
+                            }
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.03))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.bottom, 8)
             }
 
-            navigationButtons(
+            styledNavigationButtons(
                 backAction: { withAnimation { step = 1 } },
                 nextAction: {
                     viewModel.initializePlacements()
@@ -186,105 +267,192 @@ struct CreateMatchView: View {
 
     private var pointSystemStep: some View {
         VStack {
-            List {
-                Section {
-                    ForEach(viewModel.availablePointSystems) { preset in
-                        let isSelected = !viewModel.useCustomPoints && viewModel.selectedPointSystem == preset
+            ScrollView {
+                VStack(spacing: 20) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 36))
+                            .foregroundStyle(AppColors.flame)
+
+                        Text("Point System")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.white)
+
+                        Text("Choose how points are awarded.")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.gray)
+                    }
+                    .padding(.top, 16)
+
+                    VStack(spacing: 0) {
+                        ForEach(viewModel.availablePointSystems) { preset in
+                            let isSelected = !viewModel.useCustomPoints && viewModel.selectedPointSystem == preset
+
+                            Button {
+                                viewModel.useCustomPoints = false
+                                viewModel.selectedPointSystem = preset
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(preset.name)
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundStyle(.white)
+                                        Text(preset.pointsByPlacement.map { "\($0 >= 0 ? "+" : "")\($0)" }.joined(separator: ", "))
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(Color.gray)
+                                    }
+                                    Spacer()
+                                    if isSelected {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(AppColors.flame)
+                                    } else {
+                                        Image(systemName: "circle")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(Color.gray)
+                                    }
+                                }
+                                .padding(16)
+                                .background(isSelected ? Color.white.opacity(0.05) : Color.clear)
+                            }
+
+                            Divider()
+                                .background(Color.white.opacity(0.06))
+                        }
+
                         Button {
-                            viewModel.useCustomPoints = false
-                            viewModel.selectedPointSystem = preset
+                            viewModel.useCustomPoints = true
+                            viewModel.selectedPointSystem = nil
+                            viewModel.customPoints = Array(repeating: 0, count: viewModel.selectedPlayers.count)
+                            viewModel.didSavePointSystem = false
+                            viewModel.customPointSystemName = ""
                         } label: {
                             HStack {
-                                VStack(alignment: .leading) {
-                                    Text(preset.name)
-                                        .foregroundStyle(.primary)
-                                    Text(preset.pointsByPlacement.map { "\($0 >= 0 ? "+" : "")\($0)" }.joined(separator: ", "))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text("Custom")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(.white)
                                 Spacer()
-                                if isSelected {
+                                if viewModel.useCustomPoints {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.primary)
-                                        .font(.title3)
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(AppColors.flame)
                                 } else {
                                     Image(systemName: "circle")
-                                        .foregroundStyle(.secondary)
-                                        .font(.title3)
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(Color.gray)
                                 }
                             }
+                            .padding(16)
+                            .background(viewModel.useCustomPoints ? Color.white.opacity(0.05) : Color.clear)
                         }
-                        .listRowBackground(isSelected ? Color.white.opacity(0.10) : nil)
                     }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.03))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal)
 
-                    Button {
-                        viewModel.useCustomPoints = true
-                        viewModel.selectedPointSystem = nil
-                        viewModel.customPoints = Array(repeating: 0, count: viewModel.selectedPlayers.count)
-                        viewModel.didSavePointSystem = false
-                        viewModel.customPointSystemName = ""
-                    } label: {
-                        HStack {
-                            Text("Custom")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if viewModel.useCustomPoints {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.primary)
-                                    .font(.title3)
-                            } else {
-                                Image(systemName: "circle")
-                                    .foregroundStyle(.secondary)
-                                    .font(.title3)
+                    if viewModel.useCustomPoints {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("CUSTOM POINTS")
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(0.5)
+                                .foregroundStyle(Color.gray)
+                                .padding(.horizontal)
+
+                            VStack(spacing: 0) {
+                                ForEach(0..<viewModel.selectedPlayers.count, id: \.self) { index in
+                                    HStack {
+                                        Text(placementLabel(index + 1))
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundStyle(placementColor(index + 1))
+                                            .frame(width: 36)
+
+                                        TextField("Points", value: $viewModel.customPoints[index], format: .number)
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.white)
+                                            .keyboardType(.numbersAndPunctuation)
+                                            .padding(10)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 6)
+                                                    .fill(Color.white.opacity(0.05))
+                                            )
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+
+                                    if index < viewModel.selectedPlayers.count - 1 {
+                                        Divider()
+                                            .background(Color.white.opacity(0.06))
+                                    }
+                                }
                             }
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.white.opacity(0.03))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("SAVE TO LEADERBOARD")
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(0.5)
+                                .foregroundStyle(Color.gray)
+                                .padding(.horizontal)
+
+                            VStack(spacing: 8) {
+                                HStack(spacing: 10) {
+                                    TextField("Point system name...", text: $viewModel.customPointSystemName)
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.white)
+
+                                    Button {
+                                        viewModel.saveCustomPointSystem()
+                                    } label: {
+                                        Text(viewModel.didSavePointSystem ? "Saved" : "Save")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundStyle(AppColors.flame)
+                                    }
+                                    .disabled(!viewModel.canSaveCustomPointSystem)
+                                }
+
+                                if viewModel.didSavePointSystem {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "checkmark.circle")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(AppColors.positive)
+                                        Text("This point system will appear as an option for future games.")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(Color.gray)
+                                    }
+                                }
+                            }
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.white.opacity(0.03))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                            .padding(.horizontal)
                         }
                     }
-                    .listRowBackground(viewModel.useCustomPoints ? Color.white.opacity(0.10) : nil)
-                } header: {
-                    Text("Point System")
-                        .sectionHeaderStyle()
                 }
-
-                if viewModel.useCustomPoints {
-                    Section {
-                        ForEach(0..<viewModel.selectedPlayers.count, id: \.self) { index in
-                            HStack {
-                                Text(placementLabel(index + 1))
-                                    .frame(width: 36)
-                                TextField("Points", value: $viewModel.customPoints[index], format: .number)
-                                    .keyboardType(.numbersAndPunctuation)
-                                    .textFieldStyle(.roundedBorder)
-                            }
-                        }
-                    } header: {
-                        Text("Custom Points")
-                            .sectionHeaderStyle()
-                    }
-
-                    Section {
-                        HStack {
-                            TextField("Point system name...", text: $viewModel.customPointSystemName)
-                            Button {
-                                viewModel.saveCustomPointSystem()
-                            } label: {
-                                Text(viewModel.didSavePointSystem ? "Saved" : "Save")
-                            }
-                            .disabled(!viewModel.canSaveCustomPointSystem)
-                        }
-                        if viewModel.didSavePointSystem {
-                            Label("This point system will appear as an option for future games.", systemImage: "checkmark.circle")
-                                .font(.caption)
-                                .foregroundStyle(.primary)
-                        }
-                    } header: {
-                        Text("Save to Leaderboard")
-                            .sectionHeaderStyle()
-                    }
-                }
+                .padding(.bottom, 8)
             }
-            .scrollContentBackground(.hidden)
 
-            navigationButtons(
+            styledNavigationButtons(
                 backAction: { withAnimation { step = 2 } },
                 nextAction: { withAnimation { step = 4 } },
                 nextDisabled: !viewModel.hasPointSystem
@@ -296,66 +464,90 @@ struct CreateMatchView: View {
 
     private var placementStep: some View {
         VStack {
+            VStack(spacing: 8) {
+                Image(systemName: "list.number")
+                    .font(.system(size: 36))
+                    .foregroundStyle(AppColors.flame)
+
+                Text("Set Placements")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
+
+                Text("Drag to reorder. Top = 1st place.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.gray)
+            }
+            .padding(.top, 16)
+            .padding(.bottom, 4)
+
             List {
                 Section {
                     ForEach(viewModel.placements) { member in
                         HStack {
                             if let index = viewModel.placements.firstIndex(where: { $0.userId == member.userId }) {
                                 Text(placementLabel(index + 1))
-                                    .font(.headline)
+                                    .font(.system(size: 14, weight: .bold))
                                     .foregroundStyle(placementColor(index + 1))
                                     .frame(width: 36)
                             }
                             Text(member.displayName)
-                                .font(.body)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
                             Spacer()
                         }
+                        .listRowBackground(Color.white.opacity(0.03))
+                        .listRowSeparatorTint(Color.white.opacity(0.06))
                     }
                     .onMove { from, to in
                         viewModel.placements.move(fromOffsets: from, toOffset: to)
                     }
                 } header: {
-                    Text("Drag to Set Placements (top = 1st)")
-                        .sectionHeaderStyle()
+                    Text("PLACEMENTS")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.5)
+                        .foregroundStyle(Color.gray)
                 }
 
-                // Preview
                 if !viewModel.pointsPreview.isEmpty {
                     Section {
                         ForEach(viewModel.pointsPreview, id: \.member.userId) { item in
                             HStack {
                                 Text(item.member.displayName)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(.white)
                                 Spacer()
                                 Text(item.points >= 0 ? "+\(item.points)" : "\(item.points)")
-                                    .fontWeight(.semibold)
+                                    .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(item.points >= 0 ? AppColors.positive : AppColors.negative)
                             }
+                            .listRowBackground(Color.white.opacity(0.03))
+                            .listRowSeparatorTint(Color.white.opacity(0.06))
                         }
                     } header: {
-                        Text("Points Preview")
-                            .sectionHeaderStyle()
+                        Text("POINTS PREVIEW")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .foregroundStyle(Color.gray)
                     }
                 }
             }
             .scrollContentBackground(.hidden)
             .environment(\.editMode, .constant(.active))
 
-            HStack {
+            HStack(spacing: 12) {
                 Button {
                     withAnimation { step = 3 }
                 } label: {
                     Text("Back")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 24)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(AppColors.flame)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.separator), lineWidth: 1.5)
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AppColors.flame, lineWidth: 1.5)
                         )
                 }
-
-                Spacer()
 
                 Button {
                     submitResult()
@@ -367,42 +559,42 @@ struct CreateMatchView: View {
                         Text("Submit Result")
                     }
                 }
-                .buttonStyle(GradientButtonStyle(fullWidth: false))
+                .buttonStyle(GradientButtonStyle())
                 .disabled(!viewModel.canSubmit || viewModel.isSubmitting)
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.bottom, 24)
         }
     }
 
     // MARK: - Reusable Nav Buttons
 
-    private func navigationButtons(backAction: @escaping () -> Void, nextAction: @escaping () -> Void, nextDisabled: Bool) -> some View {
-        HStack {
+    private func styledNavigationButtons(backAction: @escaping () -> Void, nextAction: @escaping () -> Void, nextDisabled: Bool) -> some View {
+        HStack(spacing: 12) {
             Button {
                 backAction()
             } label: {
                 Text("Back")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 24)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(AppColors.flame)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(.separator), lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppColors.flame, lineWidth: 1.5)
                     )
             }
-
-            Spacer()
 
             Button {
                 nextAction()
             } label: {
                 Text("Next")
             }
-            .buttonStyle(GradientButtonStyle(fullWidth: false))
+            .buttonStyle(GradientButtonStyle())
             .disabled(nextDisabled)
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.bottom, 24)
     }
 
     // MARK: - Helpers

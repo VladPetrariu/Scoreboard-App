@@ -369,7 +369,7 @@ struct LeaderboardDetailView: View {
         return HStack(spacing: 3) {
             Image(systemName: rank.tier.systemIcon)
                 .font(.system(size: 6))
-            Text(rank.tier.rawValue.uppercased())
+            Text(rank.displayName.uppercased())
                 .font(.system(size: 7, weight: .bold))
                 .tracking(0.5)
         }
@@ -394,7 +394,7 @@ struct LeaderboardDetailView: View {
 
     private var matchHistoryView: some View {
         ScrollView {
-            if viewModel.matches.isEmpty {
+            if viewModel.allMatches.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "gamecontroller")
                         .font(.system(size: 40))
@@ -410,7 +410,7 @@ struct LeaderboardDetailView: View {
                 .padding(.top, 80)
             } else {
                 LazyVStack(spacing: 10) {
-                    ForEach(viewModel.matches) { match in
+                    ForEach(viewModel.allMatches) { match in
                         MatchRowView(match: match)
                             .contextMenu {
                                 Button(role: .destructive) {
@@ -418,6 +418,18 @@ struct LeaderboardDetailView: View {
                                     showDeleteMatchConfirmation = true
                                 } label: {
                                     Label("Delete", systemImage: "trash")
+                                }
+                            }
+                    }
+
+                    if viewModel.hasMoreMatches {
+                        ProgressView()
+                            .tint(AppColors.flame)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .onAppear {
+                                Task {
+                                    await viewModel.loadMoreMatches()
                                 }
                             }
                     }

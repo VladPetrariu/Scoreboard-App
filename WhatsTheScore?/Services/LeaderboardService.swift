@@ -137,6 +137,45 @@ class LeaderboardService {
         try docRef.setData(from: leaderboard)
     }
 
+    // MARK: - Batch Update Points
+
+    func updateMembersPoints(leaderboardId: String, playerUpdates: [(userId: String, pointsDelta: Int, isWin: Bool)]) async throws {
+        let docRef = db.collection("leaderboards").document(leaderboardId)
+        let doc = try await docRef.getDocument()
+        guard var leaderboard = try doc.data(as: Leaderboard?.self) else {
+            throw LeaderboardError.notFound
+        }
+
+        for update in playerUpdates {
+            guard let idx = leaderboard.members.firstIndex(where: { $0.userId == update.userId }) else { continue }
+            leaderboard.members[idx].points += update.pointsDelta
+            leaderboard.members[idx].gamesPlayed += 1
+            if update.isWin {
+                leaderboard.members[idx].wins += 1
+            }
+        }
+
+        try docRef.setData(from: leaderboard)
+    }
+
+    // MARK: - Batch Adjust Stats
+
+    func adjustMembersStats(leaderboardId: String, adjustments: [(userId: String, gamesDelta: Int, winsDelta: Int)]) async throws {
+        let docRef = db.collection("leaderboards").document(leaderboardId)
+        let doc = try await docRef.getDocument()
+        guard var leaderboard = try doc.data(as: Leaderboard?.self) else {
+            throw LeaderboardError.notFound
+        }
+
+        for adj in adjustments {
+            guard let idx = leaderboard.members.firstIndex(where: { $0.userId == adj.userId }) else { continue }
+            leaderboard.members[idx].gamesPlayed = max(0, leaderboard.members[idx].gamesPlayed + adj.gamesDelta)
+            leaderboard.members[idx].wins = max(0, leaderboard.members[idx].wins + adj.winsDelta)
+        }
+
+        try docRef.setData(from: leaderboard)
+    }
+
     // MARK: - Add Game Type
 
     func addGameType(leaderboardId: String, gameType: String) async throws {

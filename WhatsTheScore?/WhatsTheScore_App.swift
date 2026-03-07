@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import FirebaseCore
 import FirebaseFirestore
 
@@ -19,7 +20,7 @@ struct WhatsTheScore_App: App {
         WindowGroup {
             Group {
                 if authViewModel.isLoading {
-                    ProgressView("Loading...")
+                    LoadingView()
                 } else if authViewModel.isSignedIn {
                     MainTabView()
                 } else {
@@ -29,6 +30,18 @@ struct WhatsTheScore_App: App {
             .environmentObject(authViewModel)
             .tint(AppColors.flame)
             .preferredColorScheme(.dark)
+            .onAppear {
+                // Pre-warm the keyboard so the first TextField tap is instant
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    let tf = UITextField(frame: .zero)
+                    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                          let window = windowScene.windows.first else { return }
+                    window.addSubview(tf)
+                    tf.becomeFirstResponder()
+                    tf.resignFirstResponder()
+                    tf.removeFromSuperview()
+                }
+            }
         }
     }
 }

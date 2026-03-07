@@ -65,7 +65,7 @@ struct MemberRowView: View {
                 .fill(rankColor)
                 .frame(width: 6, height: 6)
 
-            Text(member.rank.tier.rawValue.uppercased())
+            Text(member.rank.displayName.uppercased())
                 .font(.system(size: 7, weight: .bold))
         }
         .foregroundStyle(rankColor)

@@ -9,7 +9,7 @@ struct HomeView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                ProgressView("Loading leaderboards...")
+                LoadingView()
             } else if viewModel.leaderboards.isEmpty {
                 emptyState
             } else {
@@ -171,7 +171,7 @@ struct HomeView: View {
                 .fill(color)
                 .frame(width: 6, height: 6)
 
-            Text(rank.tier.rawValue.uppercased())
+            Text(rank.displayName.uppercased())
                 .font(.system(size: 7, weight: .bold))
         }
         .foregroundStyle(color)

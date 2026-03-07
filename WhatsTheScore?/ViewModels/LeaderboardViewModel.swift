@@ -6,13 +6,29 @@ import FirebaseFirestore
 class LeaderboardViewModel: ObservableObject {
     @Published var leaderboard: Leaderboard
     @Published var matches: [Match] = []
+    @Published var olderMatches: [Match] = []
     @Published var isLoading = false
+    @Published var isLoadingMore = false
+    @Published var hasMoreMatches = true
     @Published var errorMessage: String?
 
     private var leaderboardListener: ListenerRegistration?
     private var matchesListener: ListenerRegistration?
+    private var paginationCursor: DocumentSnapshot?
     private let leaderboardService = LeaderboardService.shared
     private let matchService = MatchService.shared
+    private let initialPageSize = 15
+
+    var allMatches: [Match] {
+        var seen = Set<String>()
+        var result: [Match] = []
+        for match in matches + olderMatches {
+            if seen.insert(match.id).inserted {
+                result.append(match)
+            }
+        }
+        return result
+    }
 
     init(leaderboard: Leaderboard) {
         self.leaderboard = leaderboard
@@ -33,11 +49,39 @@ class LeaderboardViewModel: ObservableObject {
             }
         }
 
-        matchesListener = matchService.listenToMatches(leaderboardId: leaderboard.id) { [weak self] matches in
+        matchesListener = matchService.listenToMatches(leaderboardId: leaderboard.id, limit: initialPageSize) { [weak self] matches, lastDoc in
             Task { @MainActor [weak self] in
-                self?.matches = matches
+                guard let self else { return }
+                self.matches = matches
+                // Only set the cursor if the user hasn't started paginating yet
+                if self.olderMatches.isEmpty {
+                    self.paginationCursor = lastDoc
+                }
+                if matches.count < self.initialPageSize {
+                    self.hasMoreMatches = false
+                }
             }
         }
+    }
+
+    func loadMoreMatches() async {
+        guard let cursor = paginationCursor, hasMoreMatches, !isLoadingMore else { return }
+        isLoadingMore = true
+        do {
+            let (newMatches, lastDoc) = try await matchService.fetchMoreMatches(
+                leaderboardId: leaderboard.id,
+                after: cursor,
+                limit: 10
+            )
+            olderMatches.append(contentsOf: newMatches)
+            paginationCursor = lastDoc
+            if newMatches.count < 10 {
+                hasMoreMatches = false
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoadingMore = false
     }
 
     func addGameType(_ gameType: String) async {
@@ -63,17 +107,15 @@ class LeaderboardViewModel: ObservableObject {
 
     func deleteMatch(_ match: Match) async -> Bool {
         do {
-            // Adjust stats for each player: decrement gamesPlayed, decrement wins if they won
-            for player in match.players {
-                try await leaderboardService.adjustMemberStats(
-                    leaderboardId: leaderboard.id,
-                    userId: player.userId,
-                    gamesDelta: -1,
-                    winsDelta: player.placement == 1 ? -1 : 0
-                )
+            // Batch-adjust stats for all players in a single read-modify-write
+            let adjustments = match.players.map { player in
+                (userId: player.userId, gamesDelta: -1, winsDelta: player.placement == 1 ? -1 : 0)
             }
+            try await leaderboardService.adjustMembersStats(leaderboardId: leaderboard.id, adjustments: adjustments)
             // Delete the match document
             try await matchService.deleteMatch(leaderboardId: leaderboard.id, matchId: match.id)
+            // Remove from olderMatches if present
+            olderMatches.removeAll { $0.id == match.id }
             return true
         } catch {
             errorMessage = error.localizedDescription

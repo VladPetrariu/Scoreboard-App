@@ -78,38 +78,39 @@ struct CreateLeaderboardView: View {
     // MARK: - Step 1: Name
 
     private var nameStep: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 80)
 
-            Image(systemName: "trophy.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(AppColors.flame)
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(AppColors.flame)
 
-            Text("Name Your Leaderboard")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
+                Text("Name Your Leaderboard")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
 
-            Text("Choose a name for your group.")
-                .font(.system(size: 14))
-                .foregroundStyle(Color.gray)
+                Text("Choose a name for your group.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.gray)
 
-            TextField("e.g. Game Night Squad", text: $name)
-                .font(.system(size: 18, weight: .semibold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.white.opacity(0.03))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
-                .padding(.horizontal, 32)
-
-            Spacer()
-
+                TextField("e.g. Game Night Squad", text: $name)
+                    .font(.system(size: 18, weight: .semibold))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.03))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 32)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
             Button {
                 withAnimation { currentStep = 1 }
             } label: {
@@ -119,6 +120,7 @@ struct CreateLeaderboardView: View {
             .padding(.horizontal, 32)
             .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
             .padding(.bottom, 24)
+            .background(AppColors.pageBackground)
         }
     }
 
@@ -282,6 +284,7 @@ struct CreateLeaderboardView: View {
                         Text("Next")
                     }
                     .buttonStyle(GradientButtonStyle())
+                    .opacity(selectedGames.isEmpty ? 0.4 : 1.0)
                     .disabled(selectedGames.isEmpty)
                 }
                 .padding(.horizontal)
@@ -293,65 +296,65 @@ struct CreateLeaderboardView: View {
     // MARK: - Step 3: Starting Rank
 
     private var rankStep: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 80)
 
-            RankBadgeView(rank: Rank(tier: startingTier, division: startingDivision), size: .large)
+                RankBadgeView(rank: Rank(tier: startingTier, division: startingDivision), size: .large)
 
-            Text("Starting Rank")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
+                Text("Starting Rank")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
 
-            Text("All players who join will start at this rank.")
-                .font(.system(size: 14))
-                .foregroundStyle(Color.gray)
-                .multilineTextAlignment(.center)
+                Text("All players who join will start at this rank.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.gray)
+                    .multilineTextAlignment(.center)
 
-            // Rank pickers
-            VStack(spacing: 0) {
-                HStack {
-                    Text("Rank")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Picker("Rank", selection: $startingTier) {
-                        ForEach(RankTier.allCases, id: \.self) { tier in
-                            Text(tier.rawValue).tag(tier)
+                // Rank pickers
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("Rank")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Picker("Rank", selection: $startingTier) {
+                            ForEach(RankTier.allCases, id: \.self) { tier in
+                                Text(tier.rawValue).tag(tier)
+                            }
                         }
+                        .tint(RankTheme.color(for: startingTier))
                     }
-                    .tint(RankTheme.color(for: startingTier))
-                }
-                .padding(16)
+                    .padding(16)
 
-                Divider().background(Color.white.opacity(0.06))
+                    Divider().background(Color.white.opacity(0.06))
 
-                HStack {
-                    Text("Division")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Picker("Division", selection: $startingDivision) {
-                        ForEach(1...3, id: \.self) { div in
-                            Text("\(div)").tag(div)
+                    HStack {
+                        Text("Division")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Picker("Division", selection: $startingDivision) {
+                            ForEach(1...3, id: \.self) { div in
+                                Text("\(div)").tag(div)
+                            }
                         }
+                        .tint(RankTheme.color(for: startingTier))
                     }
-                    .tint(RankTheme.color(for: startingTier))
+                    .padding(16)
                 }
-                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.horizontal, 32)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.white.opacity(0.03))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-            )
-            .padding(.horizontal, 32)
-
-            Spacer()
-
-            // Navigation buttons
+        }
+        .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {
                 Button {
                     withAnimation { currentStep = 1 }
@@ -382,6 +385,7 @@ struct CreateLeaderboardView: View {
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 24)
+            .background(AppColors.pageBackground)
         }
     }
 
