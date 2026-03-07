@@ -16,15 +16,16 @@ struct JoinLeaderboardView: View {
                 Spacer()
 
                 Image(systemName: "person.badge.plus")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 48))
+                    .foregroundStyle(AppColors.flame)
 
                 Text("Join a Leaderboard")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
 
                 Text("Enter the 6-character invite code\nshared by the leaderboard creator.")
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.gray)
                     .multilineTextAlignment(.center)
 
                 TextField("Invite Code", text: $inviteCode)
@@ -33,16 +34,19 @@ struct JoinLeaderboardView: View {
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .focused($isCodeFocused)
+                    .foregroundStyle(.white)
                     .padding()
-                    .background(.ultraThinMaterial)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.03))
+                    )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 8)
                             .stroke(
-                                isCodeFocused ? Color(.label) : Color(.separator),
+                                isCodeFocused ? AppColors.flame : Color.white.opacity(0.1),
                                 lineWidth: isCodeFocused ? 2 : 1
                             )
                     )
-                    .cornerRadius(12)
                     .frame(maxWidth: 250)
                     .onChange(of: inviteCode) { newValue in
                         inviteCode = String(newValue.prefix(6)).uppercased()
@@ -72,12 +76,12 @@ struct JoinLeaderboardView: View {
                 Spacer()
             }
             .padding()
-            .background(
-                AppColors.pageBackground
-                    .ignoresSafeArea()
-            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.pageBackground.ignoresSafeArea())
             .navigationTitle("Join Leaderboard")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(AppColors.pageBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

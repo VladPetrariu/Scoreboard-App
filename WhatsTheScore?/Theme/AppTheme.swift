@@ -158,12 +158,10 @@ struct CardStyle: ViewModifier {
         content
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 8)
                     .fill(Color.white.opacity(0.03))
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
             )
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppColors.glassBorder))
-            .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.1)))
     }
 }
 
@@ -222,7 +220,7 @@ struct GradientButtonStyle: ButtonStyle {
             .padding(.vertical, 14)
             .padding(.horizontal, fullWidth ? 0 : 24)
             .background(AppColors.actionGradient)
-            .cornerRadius(14)
+            .cornerRadius(8)
             .shadow(color: AppColors.flame.opacity(0.3), radius: 8, x: 0, y: 4)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)

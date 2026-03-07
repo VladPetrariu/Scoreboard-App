@@ -393,31 +393,26 @@ struct LeaderboardDetailView: View {
     // MARK: - Match History
 
     private var matchHistoryView: some View {
-        Group {
+        ScrollView {
             if viewModel.matches.isEmpty {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        Image(systemName: "gamecontroller")
-                            .font(.system(size: 40))
-                            .foregroundStyle(AppColors.flame.opacity(0.6))
-                        Text("No Games Yet")
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                        Text("Play a game to see results here.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 80)
+                VStack(spacing: 12) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 40))
+                        .foregroundStyle(AppColors.flame.opacity(0.6))
+                    Text("No Games Yet")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Play a game to see results here.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 80)
             } else {
-                List {
+                LazyVStack(spacing: 10) {
                     ForEach(viewModel.matches) { match in
                         MatchRowView(match: match)
-                            .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            .contextMenu {
                                 Button(role: .destructive) {
                                     matchToDelete = match
                                     showDeleteMatchConfirmation = true
@@ -427,8 +422,8 @@ struct LeaderboardDetailView: View {
                             }
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                .padding(.horizontal)
+                .padding(.bottom, 20)
             }
         }
     }
@@ -441,48 +436,75 @@ struct MatchRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // Header: game type badge + date
             HStack {
-                Text(match.gameType)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(AppColors.actionGradient)
-                    .cornerRadius(8)
+                HStack(spacing: 3) {
+                    Image(systemName: "gamecontroller.fill")
+                        .font(.system(size: 6))
+                    Text(match.gameType.uppercased())
+                        .font(.system(size: 7, weight: .bold))
+                        .tracking(0.5)
+                }
+                .foregroundStyle(AppColors.flame)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(AppColors.flame.opacity(0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 2)
+                        .stroke(AppColors.flame.opacity(0.3), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 2))
 
                 Spacer()
 
                 Text(match.createdAt, style: .date)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.gray)
             }
 
+            // Player results
             ForEach(match.sortedPlayers) { player in
-                HStack {
-                    Text(placementText(player.placement))
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(AppColors.flame)
+                HStack(spacing: 10) {
+                    Text("\(player.placement)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(placementColor(player.placement))
+                        .frame(width: 20, alignment: .center)
+
                     Text(player.displayName)
-                        .font(.subheadline)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
                     Spacer()
+
                     Text(player.pointsEarned >= 0 ? "+\(player.pointsEarned)" : "\(player.pointsEarned)")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(player.pointsEarned >= 0 ? AppColors.positive : AppColors.negative)
                 }
             }
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .overlay(alignment: .leading) {
+            UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 8, bottomTrailingRadius: 0, topTrailingRadius: 0)
+                .fill(AppColors.flame)
+                .frame(width: 4)
+        }
     }
 
-    private func placementText(_ placement: Int) -> String {
+    private func placementColor(_ placement: Int) -> Color {
         switch placement {
-        case 1: return "1st"
-        case 2: return "2nd"
-        case 3: return "3rd"
-        case 4: return "4th"
-        default: return "\(placement)th"
+        case 1: return Color(red: 0.965, green: 0.828, blue: 0.396)
+        case 2: return Color.gray
+        case 3: return Color(red: 0.804, green: 0.498, blue: 0.196)
+        default: return Color.gray
         }
     }
 }

@@ -59,7 +59,7 @@ struct HomeView: View {
                         .padding(.vertical, 14)
                         .padding(.horizontal, 24)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
+                            RoundedRectangle(cornerRadius: 8)
                                 .stroke(AppColors.flame, lineWidth: 1.5)
                         )
                 }
@@ -84,84 +84,118 @@ struct HomeView: View {
     }
 
     private func leaderboardCard(_ leaderboard: Leaderboard) -> some View {
-        HStack(spacing: 0) {
-            // Left accent strip
-            RoundedRectangle(cornerRadius: 1.5)
-                .fill(
-                    currentUserRankGradient(in: leaderboard)
-                )
-                .frame(width: 3)
-                .padding(.vertical, 8)
+        let userId = authViewModel.user?.id
+        let member = userId.flatMap { uid in leaderboard.members.first(where: { $0.userId == uid }) }
+        let sortedMembers = leaderboard.sortedMembers
+        let position = userId.flatMap { uid in sortedMembers.firstIndex(where: { $0.userId == uid }).map { $0 + 1 } }
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+        return HStack(spacing: 10) {
+            // Position number
+            if let position {
+                Text("\(position)")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.gray)
+                    .frame(width: 28, alignment: .center)
+            }
+
+            // Info column
+            VStack(alignment: .leading, spacing: 4) {
+                // Rank badge + name row
+                HStack(spacing: 8) {
+                    if let member {
+                        cardRankBadge(rank: member.rank)
+                    }
+
                     Text(leaderboard.name)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-
-                    HStack(spacing: 8) {
-                        Label("\(leaderboard.members.count)", systemImage: "person.2")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        if !leaderboard.gameTypes.isEmpty {
-                            Text(leaderboard.gameTypes.prefix(2).joined(separator: ", "))
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(AppColors.flame.opacity(0.8))
-                                .cornerRadius(6)
-                                .lineLimit(1)
-                        }
-                    }
-
-                    if let userId = authViewModel.user?.id,
-                       let member = leaderboard.members.first(where: { $0.userId == userId }) {
-                        let sortedMembers = leaderboard.sortedMembers
-                        if let pos = sortedMembers.firstIndex(where: { $0.userId == userId }) {
-                            HStack(spacing: 4) {
-                                // Position circle
-                                ZStack {
-                                    Circle()
-                                        .fill(RankTheme.positionGradient(pos + 1))
-                                        .frame(width: 18, height: 18)
-                                    Text("\(pos + 1)")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundStyle(pos < 3 ? .white : .primary)
-                                }
-
-                                Text("of \(sortedMembers.count)")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(RankTheme.color(for: member.rank.tier))
-                            }
-                        }
-                    }
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
 
-                Spacer()
+                // Stats row
+                HStack(spacing: 8) {
+                    Text("\(leaderboard.members.count) members")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.gray)
 
-                if let userId = authViewModel.user?.id,
-                   let member = leaderboard.members.first(where: { $0.userId == userId }) {
-                    RankBadgeView(rank: member.rank, size: .small)
+                    if !leaderboard.gameTypes.isEmpty {
+                        HStack(spacing: 3) {
+                            Image(systemName: "gamecontroller.fill")
+                                .font(.system(size: 6))
+                            Text(leaderboard.gameTypes.prefix(2).joined(separator: ", ").uppercased())
+                                .font(.system(size: 7, weight: .bold))
+                                .tracking(0.5)
+                        }
+                        .foregroundStyle(AppColors.flame)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(AppColors.flame.opacity(0.2))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 2)
+                                .stroke(AppColors.flame.opacity(0.3), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
+                    }
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 14)
+
+            Spacer()
+
+            // Points
+            if let member {
+                Text(formatPoints(member.points))
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+            }
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.glassBorder))
-        .shadow(color: AppColors.flame.opacity(0.10), radius: 12, x: 0, y: 4)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .overlay(alignment: .leading) {
+            UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 8, bottomTrailingRadius: 0, topTrailingRadius: 0)
+                .fill(currentUserRankColor(in: leaderboard))
+                .frame(width: 4)
+        }
     }
 
-    private func currentUserRankGradient(in leaderboard: Leaderboard) -> LinearGradient {
+    private func cardRankBadge(rank: Rank) -> some View {
+        let color = RankTheme.color(for: rank.tier)
+        return HStack(spacing: 3) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+
+            Text(rank.tier.rawValue.uppercased())
+                .font(.system(size: 7, weight: .bold))
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(color.opacity(0.2))
+        .overlay(
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 2))
+    }
+
+    private func currentUserRankColor(in leaderboard: Leaderboard) -> Color {
         if let userId = authViewModel.user?.id,
            let member = leaderboard.members.first(where: { $0.userId == userId }) {
-            return RankTheme.gradient(for: member.rank.tier)
+            return RankTheme.color(for: member.rank.tier)
         }
-        return AppColors.cardAccentGradient
+        return AppColors.flame
+    }
+
+    private func formatPoints(_ points: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return (formatter.string(from: NSNumber(value: points)) ?? "\(points)") + " pts"
     }
 }

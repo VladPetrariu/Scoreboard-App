@@ -38,7 +38,7 @@ struct Leaderboard: Identifiable, Equatable {
     }
 
     static let presetGameTypes = [
-        "Pool", "Darts", "Monopoly", "Chess", "FIFA"
+        "Pool", "Darts", "Chess", "Monopoly", "Other"
     ]
 }
 
