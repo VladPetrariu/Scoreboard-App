@@ -364,24 +364,67 @@ struct LeaderboardDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
+    @ViewBuilder
     private func podiumRankBadge(rank: Rank) -> some View {
-        let color = RankTheme.color(for: rank.tier)
-        return HStack(spacing: 3) {
-            Image(systemName: rank.tier.systemIcon)
-                .font(.system(size: 6))
-            Text(rank.displayName.uppercased())
-                .font(.system(size: 7, weight: .bold))
-                .tracking(0.5)
+        if let badge = Self.imageBadgeAsset(for: rank.tier) {
+            HStack(spacing: 4) {
+                Image(badge.asset)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 29)
+
+                Text("\(rank.division)")
+                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [badge.gradientTop, badge.gradientBottom],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.9), radius: 2, x: 0, y: 1)
+            }
+            .padding(.top, 8)
+        } else {
+            let color = RankTheme.color(for: rank.tier)
+            HStack(spacing: 3) {
+                Image(systemName: rank.tier.systemIcon)
+                    .font(.system(size: 6))
+                Text(rank.displayName.uppercased())
+                    .font(.system(size: 7, weight: .bold))
+                    .tracking(0.5)
+            }
+            .foregroundStyle(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.2))
+            .overlay(
+                Capsule()
+                    .stroke(color.opacity(0.3), lineWidth: 1)
+            )
+            .clipShape(Capsule())
         }
-        .foregroundStyle(color)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.2))
-        .overlay(
-            Capsule()
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        )
-        .clipShape(Capsule())
+    }
+
+    private static func imageBadgeAsset(for tier: RankTier) -> (asset: String, gradientTop: Color, gradientBottom: Color)? {
+        switch tier {
+        case .iron:
+            return ("iron_badge", Color(red: 0.75, green: 0.78, blue: 0.82), Color(red: 0.45, green: 0.48, blue: 0.53))
+        case .bronze:
+            return ("bronze_badge", Color(red: 0.85, green: 0.60, blue: 0.30), Color(red: 0.55, green: 0.33, blue: 0.16))
+        case .silver:
+            return ("silver_badge", Color(red: 0.82, green: 0.84, blue: 0.88), Color(red: 0.55, green: 0.58, blue: 0.65))
+        case .gold:
+            return ("gold_badge", Color(red: 0.95, green: 0.78, blue: 0.20), Color(red: 0.75, green: 0.55, blue: 0.08))
+        case .platinum:
+            return ("platinum_badge", Color(red: 0.40, green: 0.78, blue: 0.85), Color(red: 0.20, green: 0.55, blue: 0.65))
+        case .diamond:
+            return ("diamond_badge", Color(red: 0.45, green: 0.75, blue: 1.0), Color(red: 0.25, green: 0.50, blue: 0.85))
+        case .immortal:
+            return ("immortal_badge", Color(red: 0.90, green: 0.25, blue: 0.20), Color(red: 0.60, green: 0.10, blue: 0.12))
+        default:
+            return nil
+        }
     }
 
     private func formatPoints(_ points: Int) -> String {

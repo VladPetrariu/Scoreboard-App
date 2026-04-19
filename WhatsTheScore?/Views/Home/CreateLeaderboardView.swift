@@ -300,7 +300,7 @@ struct CreateLeaderboardView: View {
             VStack(spacing: 24) {
                 Spacer().frame(height: 80)
 
-                RankBadgeView(rank: Rank(tier: startingTier, division: startingDivision), size: .large)
+                RankBadgeView(rank: Rank(tier: startingTier, division: startingDivision), size: .hero)
 
                 Text("Starting Rank")
                     .font(.system(size: 20, weight: .bold))
